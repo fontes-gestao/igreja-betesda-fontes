@@ -47,3 +47,11 @@ Atualização: zona de risco restrita
 - A área "Zona de risco" fica oculta para todos os outros perfis.
 - O botão "Apagar todos os dados" só executa se o perfil ativo for ADM.
 - Ao apagar os dados, o perfil ADM é preservado para você conseguir administrar o sistema novamente.
+
+
+Atualização v10-lock:
+- Zona de risco agora aparece com cadeado para todos.
+- Ao clicar em Apagar todos os dados, abre popup: digite o usuário e senha para essa ação.
+- A ação só executa com usuário ADM e senha 757130, e ainda exige marcar a confirmação.
+- O usuário ADM é preservado após apagar os dados.
+- Cache/PWA atualizado para forçar nova versão.

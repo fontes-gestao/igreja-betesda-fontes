@@ -6,15 +6,15 @@
    - Ao publicar uma versão nova no GitHub, o app atualiza sem precisar limpar cache.
    ============================================================ */
 
-const CACHE_VERSION = '20260704-admin-risk-v9';
+const CACHE_VERSION = '20260704-admin-risk-v10-lock';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=20260704-admin-risk-v9',
-  './script.js?v=20260704-admin-risk-v9',
-  './manifest.json?v=20260704-admin-risk-v9',
+  './style.css?v=20260704-admin-risk-v10-lock',
+  './script.js?v=20260704-admin-risk-v10-lock',
+  './manifest.json?v=20260704-admin-risk-v10-lock',
   './assets/church-logo.png',
   './assets/cards/card-culto.png',
   './assets/cards/card-evento.png',

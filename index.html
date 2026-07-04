@@ -25,7 +25,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260704-admin-risk-v9">
+  <link rel="stylesheet" href="style.css?v=20260704-admin-risk-v10-lock">
  </head>
  <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
   <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
@@ -250,10 +250,10 @@
         <button id="edit-current-profile" class="canva-button w-full rounded-xl py-2.5 card2 font-medium flex items-center justify-center gap-2"><i data-lucide="pencil"></i><span>Editar usuário, foto e senha</span></button>
         <p class="muted text-xs">As áreas Financeiro e Doações exigem que o perfil tenha senha cadastrada.</p>
        </div>
-       <div id="risk-zone" class="card rounded-2xl p-5 space-y-4 lg:col-span-2 hidden">
-        <h3 class="font-semibold flex items-center gap-2 text-red-400"><i data-lucide="alert-triangle"></i> Zona de risco</h3>
-        <p class="muted text-sm">Área restrita ao administrador. Usuário: <strong>ADM</strong>.</p>
-        <button id="reset-data" class="canva-button w-full rounded-xl py-2.5 font-medium" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><span data-template-id="btn-reset" class="canva-text">Apagar todos os dados</span></button>
+       <div id="risk-zone" class="card rounded-2xl p-5 space-y-4 lg:col-span-2">
+        <h3 class="font-semibold flex items-center gap-2 text-red-400"><i data-lucide="lock"></i> Zona de risco bloqueada</h3>
+        <p class="muted text-sm">Área protegida. Para apagar todos os dados, será obrigatório informar o usuário e a senha do administrador.</p>
+        <button id="reset-data" class="canva-button w-full rounded-xl py-2.5 font-medium flex items-center justify-center gap-2" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><i data-lucide="lock"></i><span data-template-id="btn-reset" class="canva-text">Apagar todos os dados</span></button>
        </div>
       </div>
      </section>
@@ -304,6 +304,6 @@
    </div>
   </div>
 
-  <script type="module" src="script.js?v=20260704-admin-risk-v9"></script>
+  <script type="module" src="script.js?v=20260704-admin-risk-v10-lock"></script>
  </body>
 </html>

@@ -395,7 +395,7 @@ function refreshSettingsUI(){
     $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
   }
   const risk=$('#risk-zone');
-  if(risk) risk.classList.toggle('hidden', !isAdminProfile(p));
+  if(risk) risk.classList.remove('hidden');
   updateThemeButtons();
 }
 function updateThemeButtons(){
@@ -418,16 +418,56 @@ $('#theme-dark').onclick=()=>{settings.theme='dark';LS.set('settings',settings);
 $('#theme-light').onclick=()=>{settings.theme='light';LS.set('settings',settings);applyTheme();updateThemeButtons();toast('Tema Claro aplicado');};
 $('#save-config').onclick=()=>{settings.churchName=$('#cfg-church').value.trim()||'Igreja Betesda Fontes';LS.set('settings',settings);refreshSettingsUI();toast('Configurações salvas');};
 $('#edit-current-profile').onclick=()=>openEditProfileModal();
-let resetArmed=false;
-$('#reset-data').onclick=async e=>{
-  if(!isAdminProfile()){toast('Ação permitida apenas para o usuário ADM');return;}
-  if(!resetArmed){resetArmed=true;e.currentTarget.querySelector('span').textContent='Clique novamente para apagar tudo';setTimeout(()=>{resetArmed=false;e.currentTarget.querySelector('span').textContent='Apagar todos os dados';},3000);return;}
+$('#reset-data').onclick=()=>openAdminResetModal();
+
+function validAdminCredentials(user, password){
+  return String(user||'').trim().toUpperCase()===ADMIN_USERNAME && hashPassword(password)===ADMIN_PASSWORD_HASH;
+}
+
+async function performProtectedReset(){
   ['active_profile','members','escalas','eventos','manut','financeiro','doacoes','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));
   profiles=[adminProfileTemplate()];LS.set('profiles',profiles);
-  try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);}
+  try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);toast('Erro ao apagar na nuvem');return false;}
   activeProfile=ADMIN_PROFILE_ID;LS.set('active_profile',activeProfile);
-  location.reload();
-};
+  toast('Dados apagados. Perfil ADM preservado.');
+  setTimeout(()=>location.reload(),700);
+  return true;
+}
+
+function openAdminResetModal(){
+  $('#modal-title').textContent='Ação protegida';
+  $('#modal-form').innerHTML=`
+    <div class="sm:col-span-2 rounded-xl p-3" style="border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.08)">
+      <p class="font-semibold text-red-400 flex items-center gap-2"><i data-lucide="lock"></i> Zona de risco bloqueada</p>
+      <p class="muted text-sm mt-1">Digite o usuário e senha para essa ação. Essa ação apaga todos os cadastros, eventos, escalas, financeiro, doações e manutenções. O usuário ADM será preservado.</p>
+    </div>
+    <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="admin-action-user">Usuário</label><input id="admin-action-user" class="w-full rounded-xl px-3 py-2" autocomplete="username" placeholder="ADM"></div>
+    <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="admin-action-pass">Senha</label><input id="admin-action-pass" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password" placeholder="Senha do administrador"></div>
+    <div class="sm:col-span-2"><label class="flex items-start gap-2 text-sm muted"><input id="admin-action-confirm" type="checkbox" class="mt-1"> <span>Confirmo que quero apagar todos os dados do sistema.</span></label></div>
+    <p id="admin-action-error" class="hidden sm:col-span-2 text-sm text-red-400 font-semibold"></p>`;
+  $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
+  const saveBtn=$('#modal-save');
+  saveBtn.innerHTML='<span>Confirmar e apagar</span>';
+  saveBtn.classList.remove('accent-grad');
+  saveBtn.style.background='#dc2626';
+  saveBtn.style.color='#fff';
+  const err=$('#admin-action-error');
+  saveBtn.onclick=async()=>{
+    err.classList.add('hidden');err.textContent='';
+    const user=$('#admin-action-user').value;
+    const pass=$('#admin-action-pass').value;
+    const confirmed=$('#admin-action-confirm').checked;
+    if(!user || !pass){err.textContent='Digite o usuário e senha para essa ação.';err.classList.remove('hidden');return;}
+    if(!validAdminCredentials(user,pass)){err.textContent='Usuário ou senha incorretos.';err.classList.remove('hidden');return;}
+    if(!confirmed){err.textContent='Marque a confirmação para apagar os dados.';err.classList.remove('hidden');return;}
+    saveBtn.disabled=true;
+    saveBtn.textContent='Apagando...';
+    const ok=await performProtectedReset();
+    if(ok===false){saveBtn.disabled=false;saveBtn.textContent='Confirmar e apagar';}
+  };
+  $('#admin-action-user')?.focus();
+  icons();
+}
 
 /* DATES */
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
@@ -604,14 +644,23 @@ function fieldHtml(f){
   else inner=`<input id="fld-${f.k}" type="${f.type||'text'}" value="${esc(f.v||'')}" class="w-full rounded-xl px-3 py-2">`;
   return `<div class="${wide}"><label for="fld-${f.k}" class="text-sm muted block mb-1">${f.l}</label>${inner}</div>`;
 }
+function resetModalSaveButton(){
+  const saveBtn=$('#modal-save');
+  if(!saveBtn) return;
+  saveBtn.disabled=false;
+  saveBtn.removeAttribute('style');
+  saveBtn.classList.add('accent-grad','text-white');
+  saveBtn.innerHTML='<span data-template-id="btn-save" class="canva-text">Salvar</span>';
+}
 function openModal(title,fields,onsave){
+  resetModalSaveButton();
   $('#modal-title').textContent=title;
   $('#modal-form').innerHTML=fields.map(fieldHtml).join('');
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
   $('#modal-save').onclick=()=>{const vals={};fields.forEach(f=>vals[f.k]=$('#fld-'+f.k).value.trim());if(!vals[fields[0].k]){toast('Preencha o campo obrigatório');return;}const result=onsave(vals);if(result!==false)closeModal();};
   icons();
 }
-function closeModal(){$('#modal').classList.add('hidden');$('#modal').classList.remove('flex');}
+function closeModal(){resetModalSaveButton();$('#modal').classList.add('hidden');$('#modal').classList.remove('flex');}
 $('#modal-close').onclick=closeModal;$('#modal-cancel').onclick=closeModal;
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 
@@ -646,6 +695,7 @@ function openManutModal(m){m=m||{};openModal(m.id?'Editar Manutenção':'Nova Ma
 
 
 function openEditProfileModal(){
+  resetModalSaveButton();
   const p=currentProfile();
   if(!p){toast('Selecione um perfil primeiro');return;}
   let editAvatar=p.avatar || getAvatars()[0] || '';
@@ -725,7 +775,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-admin-risk-v9';
+const APP_VERSION = '20260704-admin-risk-v10-lock';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
