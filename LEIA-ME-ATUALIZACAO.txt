@@ -25,3 +25,10 @@ Atualização entregue nesta versão
 Observação de segurança
 - A senha implementada protege o uso dentro do aplicativo, mas como o app roda no navegador e o Firestore está em modo de teste, isso não substitui regras de segurança definitivas do Firebase.
 - Antes de usar dados financeiros reais, configure regras mais seguras no Firebase.
+
+
+Atualização 20260704-cachefix-v7
+- Corrigido problema de cache/PWA que fazia o navegador continuar mostrando versões antigas.
+- index.html agora chama style.css, script.js e manifest.json com versão na URL.
+- service-worker.js agora usa network-first para HTML/CSS/JS/JSON e cache-first só para imagens/ícones.
+- O app tenta aplicar novas versões automaticamente sem exigir limpeza manual de cache.

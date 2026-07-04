@@ -1,22 +1,20 @@
 /* ============================================================
    Service Worker - Betesda Fontes (PWA)
-   - Cache de app shell (HTML, CSS, JS, ícones, imagens)
-   - Funcionamento offline
-   - Atualização automática de cache em nova versão
-   - Cache do app shell; os dados são sincronizados via Firebase/Firestore
+   Versão com atualização automática e menos cache preso.
+   - HTML, JS, CSS e manifest: network-first com cache reload.
+   - Imagens e ícones: cache-first.
+   - Ao publicar uma versão nova no GitHub, o app atualiza sem precisar limpar cache.
    ============================================================ */
 
-// Suba este número a cada deploy para forçar atualização do cache.
-const CACHE_VERSION = 'v6-dashboard-perfis';
+const CACHE_VERSION = '20260704-cachefix-v7';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
-// Arquivos do "app shell" - essenciais para o app abrir offline.
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json',
+  './style.css?v=20260704-cachefix-v7',
+  './script.js?v=20260704-cachefix-v7',
+  './manifest.json?v=20260704-cachefix-v7',
   './assets/church-logo.png',
   './assets/cards/card-culto.png',
   './assets/cards/card-evento.png',
@@ -45,39 +43,27 @@ const APP_SHELL = [
   './icons/apple-touch-icon.png'
 ];
 
-// Bibliotecas externas (CDN) usadas pelo app - cacheadas em runtime (ver fetch handler),
-// listadas aqui só como referência do que é esperado carregar:
-// - Tailwind CDN, Google Fonts (DM Sans), Lucide Icons
-
-/* ---------------- INSTALL ---------------- */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting()) // ativa a nova versão assim que possível
+      .then(() => self.skipWaiting())
   );
 });
 
-/* ---------------- ACTIVATE ---------------- */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
         keys
           .filter((key) => key.startsWith('betesda-fontes-') && key !== CACHE_NAME)
-          .map((key) => caches.delete(key)) // limpa versões antigas de cache
+          .map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
+      .then(() => notifyClientsOfUpdate())
   );
 });
 
-/* ---------------- FETCH ----------------
-   Estratégia:
-   - Navegação (HTML): network-first, cai pro cache se offline (garante conteúdo mais novo quando online).
-   - Estáticos do app shell (css/js/ícones/imagens locais): cache-first (mais rápido).
-   - CDNs externas (tailwind/fonts/lucide): stale-while-revalidate (usa cache e atualiza em segundo plano).
-   IMPORTANTE: nunca intercepta chamadas que não sejam GET; isso não bloqueia gravações no Firestore.
-------------------------------------------- */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -87,18 +73,41 @@ self.addEventListener('fetch', (event) => {
   const isNavigation = req.mode === 'navigate';
 
   if (isNavigation) {
-    event.respondWith(networkFirst(req));
+    event.respondWith(networkFirst(req, './index.html'));
     return;
   }
 
   if (isSameOrigin) {
+    const path = url.pathname.toLowerCase();
+    const isCriticalFile = path.endsWith('/index.html') || path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.json') || path.endsWith('.webmanifest');
+
+    if (isCriticalFile) {
+      event.respondWith(networkFirst(req));
+      return;
+    }
+
     event.respondWith(cacheFirst(req));
     return;
   }
 
-  // CDNs externas (fonts.googleapis.com, cdn.tailwindcss.com, cdn.jsdelivr.net, etc.)
   event.respondWith(staleWhileRevalidate(req));
 });
+
+async function networkFirst(req, fallbackUrl) {
+  try {
+    const fresh = await fetch(req, { cache: 'reload' });
+    if (fresh && fresh.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(req, fresh.clone());
+    }
+    return fresh;
+  } catch (err) {
+    const cached = await caches.match(req);
+    if (cached) return cached;
+    if (fallbackUrl) return caches.match(fallbackUrl) || caches.match('./index.html');
+    return Response.error();
+  }
+}
 
 async function cacheFirst(req) {
   const cached = await caches.match(req);
@@ -115,20 +124,6 @@ async function cacheFirst(req) {
   }
 }
 
-async function networkFirst(req) {
-  try {
-    const fresh = await fetch(req);
-    if (fresh && fresh.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(req, fresh.clone());
-    }
-    return fresh;
-  } catch (err) {
-    const cached = await caches.match(req);
-    return cached || caches.match('./index.html');
-  }
-}
-
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(req);
@@ -141,30 +136,18 @@ async function staleWhileRevalidate(req) {
   return cached || networkPromise;
 }
 
-/* ---------------- MENSAGENS ----------------
-   Permite que a página peça para o SW novo assumir imediatamente
-   (usado no fluxo de "nova versão disponível" no script.js).
-------------------------------------------- */
+async function notifyClientsOfUpdate() {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  for (const client of clients) {
+    client.postMessage({ type: 'APP_UPDATED', version: CACHE_VERSION });
+  }
+}
+
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
+  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-/* ============================================================
-   PRONTO PARA O FUTURO (não ativado agora, só a estrutura-base):
-   - Push Notifications: adicionar listener 'push' e 'notificationclick'.
-   - Background Sync: adicionar listener 'sync' com tag própria.
-   - IndexedDB: pode ser usado em paralelo ao localStorage sem conflito.
-   ============================================================ */
-self.addEventListener('push', (event) => {
-  // Reservado para notificações push futuras.
-  // Exemplo de uso futuro:
-  // const data = event.data ? event.data.json() : {};
-  // event.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: './icons/icon-192.png' }));
-});
-
-self.addEventListener('sync', (event) => {
-  // Reservado para sincronização em segundo plano futura.
-  // if (event.tag === 'sync-dados') { event.waitUntil(/* lógica de sync */); }
-});
+self.addEventListener('push', () => {});
+self.addEventListener('sync', () => {});

@@ -670,50 +670,50 @@ boot();
    do sistema de gestão acima.)
    ============================================================ */
 
-/* ---------- Registro do Service Worker ---------- */
+/* ---------- Registro do Service Worker com atualização automática ---------- */
+const APP_VERSION = '20260704-cachefix-v7';
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
+    navigator.serviceWorker.register('./service-worker.js?v=' + APP_VERSION)
       .then((reg) => {
-        // Verifica atualização automaticamente de tempos em tempos
-        setInterval(() => reg.update(), 60 * 60 * 1000); // a cada 1h
+        // Procura atualização logo que abre e depois de tempos em tempos.
+        reg.update();
+        setInterval(() => reg.update(), 15 * 60 * 1000); // a cada 15 min
+
+        // Se já houver uma versão nova esperando, ativa automaticamente.
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // Já existia um SW controlando a página antes: há uma versão nova pronta.
-              showUpdateToast(reg);
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
         });
       })
-      .catch((err) => {
-        console.warn('Falha ao registrar o Service Worker:', err);
-      });
+      .catch((err) => console.warn('Falha ao registrar o Service Worker:', err));
 
-    // Quando o novo SW assume o controle, recarrega para usar a versão mais nova.
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
       refreshing = true;
       window.location.reload();
     });
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'APP_UPDATED') {
+        console.info('App atualizado:', event.data.version);
+      }
+    });
   });
 }
 
-function showUpdateToast(reg){
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.innerHTML = 'Nova versão disponível. <button id="pwa-update-btn" style="text-decoration:underline;font-weight:600;margin-left:6px;background:none;border:none;color:inherit;cursor:pointer">Atualizar</button>';
-  t.classList.remove('hidden');
-  const btn = document.getElementById('pwa-update-btn');
-  if (btn) {
-    btn.onclick = () => {
-      if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
-    };
-  }
+function showUpdateToast(){
+  // Mantido apenas para compatibilidade com versões antigas do service worker.
+  toast('Nova versão aplicada automaticamente');
 }
 
 /* ---------- Botão "Instalar aplicativo" ---------- */
