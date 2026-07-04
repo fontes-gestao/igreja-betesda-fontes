@@ -689,3 +689,16 @@ html.light .collapse-toggle:hover {
 @media (max-width: 1024px) {
   .plan-cover-large { min-height: 240px; }
 }
+
+
+/* Plano de leitura em modo página: ao abrir um plano, esconde a biblioteca e deixa o detalhe no topo. */
+#view-devocional.plan-open > :not(#reading-plan-detail) {
+  display: none !important;
+}
+#view-devocional.plan-open #reading-plan-detail {
+  display: block !important;
+  margin-top: 0 !important;
+}
+.plan-detail-page-head .card2 {
+  color: var(--text);
+}

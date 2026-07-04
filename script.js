@@ -933,7 +933,7 @@ function togglePlanDay(planId,day){
   all[key]=all[key]||{}; all[key][planId]=all[key][planId]||{};
   all[key][planId][day]=!all[key][planId][day];
   LS.set('reading_plan_progress',all);
-  renderReadingPlanDetail(planId);
+  if($('#view-devocional')?.classList.contains('plan-open')) renderReadingPlanDetail(planId);
   renderReadingPlanLibrary(false);
 }
 function getPlanCompletion(plan){
@@ -941,29 +941,48 @@ function getPlanCompletion(plan){
   const total=plan.days.length||1;
   return {done,total,pct:Math.round((done/total)*100)};
 }
-function renderReadingPlanLibrary(renderDetail=true){
+function renderReadingPlanLibrary(renderDetail=false){
   const wrap=$('#reading-plan-library'); if(!wrap)return;
   const plans=getReadingPlans();
   const selected=LS.get('selected_reading_plan',plans[0]?.id)||plans[0]?.id;
   wrap.innerHTML=plans.map(p=>{
     const prog=getPlanCompletion(p);
-    return `<button type="button" class="reading-plan-card card rounded-3xl overflow-hidden text-left hover:opacity-95 ${p.id===selected?'selected':''}" data-plan-id="${esc(p.id)}">
+    return `<button type="button" class="reading-plan-card card rounded-3xl overflow-hidden text-left hover:opacity-95 ${p.id===selected?'selected':''}" data-plan-id="${esc(p.id)}" aria-label="Abrir plano ${esc(p.title)}">
       <div class="plan-cover ${esc(p.cover||'cover-annual')}">
         <div class="plan-cover-glow"></div>
         <div class="plan-cover-icon"><i data-lucide="${esc(p.icon||'book-open')}"></i></div>
         <div class="plan-cover-text"><p class="plan-cover-kicker">Plano Betesda</p><h4>${esc(p.title)}</h4><span>${esc(p.duration)}</span></div>
       </div>
       <div class="p-4">
-        <p class="font-semibold">${esc(p.title)}</p>
-        <p class="muted text-sm mt-1">${esc(p.subtitle)}</p>
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0"><p class="font-semibold">${esc(p.title)}</p><p class="muted text-sm mt-1">${esc(p.subtitle)}</p></div>
+          <span class="text-xs px-3 py-1 rounded-full card2 muted shrink-0">Abrir</span>
+        </div>
         <div class="plan-progress mt-3"><span style="width:${prog.pct}%"></span></div>
         <p class="text-xs muted mt-2">${prog.done}/${prog.total} concluídos · ${prog.pct}%</p>
       </div>
     </button>`;
   }).join('');
-  wrap.querySelectorAll('[data-plan-id]').forEach(b=>b.onclick=()=>{LS.set('selected_reading_plan',b.dataset.planId);renderReadingPlanLibrary(true);});
-  if(renderDetail) renderReadingPlanDetail(selected);
+  wrap.querySelectorAll('[data-plan-id]').forEach(b=>b.onclick=()=>openReadingPlanPage(b.dataset.planId));
+  if($('#view-devocional')?.classList.contains('plan-open') || renderDetail) renderReadingPlanDetail(selected);
+  else $('#reading-plan-detail') && ($('#reading-plan-detail').innerHTML='');
   icons();
+}
+function openReadingPlanPage(planId){
+  const plans=getReadingPlans();
+  const selected=plans.find(p=>p.id===planId)?.id || plans[0]?.id;
+  if(!selected)return;
+  LS.set('selected_reading_plan',selected);
+  $('#view-devocional')?.classList.add('plan-open');
+  renderReadingPlanDetail(selected);
+  const main=document.querySelector('main');
+  if(main) main.scrollTo({top:0,behavior:'smooth'});
+  else window.scrollTo({top:0,behavior:'smooth'});
+}
+function closeReadingPlanPage(){
+  $('#view-devocional')?.classList.remove('plan-open');
+  $('#reading-plan-detail') && ($('#reading-plan-detail').innerHTML='');
+  renderReadingPlanLibrary(false);
 }
 function renderReadingPlanDetail(planId){
   const box=$('#reading-plan-detail'); if(!box)return;
@@ -987,7 +1006,10 @@ function renderReadingPlanDetail(planId){
       </div>
     </div>`;
   }).join('');
-  box.innerHTML=`<div class="card rounded-3xl overflow-hidden plan-detail-card">
+  box.innerHTML=`<div class="plan-detail-page-head mb-4 flex flex-wrap items-center justify-between gap-3">
+    <button type="button" id="back-to-plan-library" class="canva-button rounded-xl px-4 py-2.5 card2 flex items-center gap-2 font-medium"><i data-lucide="arrow-left"></i> Voltar aos planos</button>
+    <span class="text-xs px-3 py-1 rounded-full card2 muted">Plano de leitura aberto</span>
+  </div><div class="card rounded-3xl overflow-hidden plan-detail-card">
     <div class="grid lg:grid-cols-[320px_1fr]">
       <div class="plan-cover plan-cover-large ${esc(plan.cover||'cover-annual')}">
         <div class="plan-cover-glow"></div>
@@ -1005,6 +1027,7 @@ function renderReadingPlanDetail(planId){
       </div>
     </div>
   </div>`;
+  $('#back-to-plan-library')?.addEventListener('click',closeReadingPlanPage);
   $('#complete-current-plan-day')?.addEventListener('click',()=>togglePlanDay(plan.id,todayDay));
   box.querySelectorAll('.plan-day-check').forEach(btn=>btn.addEventListener('click',()=>togglePlanDay(btn.dataset.plan,Number(btn.dataset.day))));
   icons();
@@ -1361,7 +1384,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-planos-originais-v16';
+const APP_VERSION = '20260704-planos-detalhe-v17';
 
 (function forceOneTimeCacheRefresh(){
   try{

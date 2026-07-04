@@ -9,3 +9,6 @@ Incluído nesta versão:
 - Cache/PWA atualizado para versão 20260704-planos-originais-v16.
 
 Suba todo o conteúdo da pasta pwa na raiz do repositório do GitHub Pages.
+
+
+Atualização: ao clicar em um plano de leitura, ele agora abre como página própria com botão 'Voltar aos planos', evitando que o detalhe fique escondido abaixo da biblioteca.
