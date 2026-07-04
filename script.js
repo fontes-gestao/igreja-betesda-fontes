@@ -35,7 +35,7 @@ enableIndexedDbPersistence(db).catch((err) => {
 });
 
 const cloudDoc = doc(db, 'sistema', 'dados');
-const CLOUD_KEYS = ['profiles', 'members', 'escalas', 'eventos', 'manut', 'financeiro', 'doacoes', 'settings'];
+const CLOUD_KEYS = ['profiles', 'members', 'escalas', 'eventos', 'manut', 'financeiro', 'doacoes', 'devocionais', 'avisos', 'oracoes', 'settings'];
 let applyingRemoteData = false;
 let cloudLoaded = false;
 let cloudSaveTimer = null;
@@ -85,7 +85,7 @@ function collectCloudData(){
     lastLocalWrite = Date.now();
     localStorage.setItem(LOCAL_UPDATE_KEY, String(lastLocalWrite));
   }
-  return {profiles, members, escalas, eventos, manut, financeiro, doacoes, settings, clientUpdatedAt:lastLocalWrite, updatedAt: serverTimestamp()};
+  return {profiles, members, escalas, eventos, manut, financeiro, doacoes, devocionais, avisos, oracoes, settings, clientUpdatedAt:lastLocalWrite, updatedAt: serverTimestamp()};
 }
 
 function scheduleCloudSave(){
@@ -124,9 +124,12 @@ function applyCloudData(data){
   manut=Array.isArray(data.manut)?data.manut:[];
   financeiro=Array.isArray(data.financeiro)?data.financeiro:[];
   doacoes=Array.isArray(data.doacoes)?data.doacoes:[];
+  devocionais=Array.isArray(data.devocionais)?data.devocionais:[];
+  avisos=Array.isArray(data.avisos)?data.avisos:[];
+  oracoes=Array.isArray(data.oracoes)?data.oracoes:[];
   settings=(data.settings&&typeof data.settings==='object')?data.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
   const adminChanged=ensureAdminProfile(false);
-  CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,financeiro,doacoes,settings}[k])));
+  CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,financeiro,doacoes,devocionais,avisos,oracoes,settings}[k])));
   if(remoteTs){
     lastLocalWrite = remoteTs;
     localStorage.setItem(LOCAL_UPDATE_KEY, String(remoteTs));
@@ -186,7 +189,7 @@ window.addEventListener('online', () => {
 
 async function resetCloudData(){
   markLocalDataChanged();
-  const clean={profiles:[adminProfileTemplate()],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},clientUpdatedAt:lastLocalWrite,updatedAt:serverTimestamp()};
+  const clean={profiles:[adminProfileTemplate()],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],devocionais:[],avisos:[],oracoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},clientUpdatedAt:lastLocalWrite,updatedAt:serverTimestamp()};
   await setDoc(cloudDoc, clean, {merge:true});
 }
 
@@ -196,13 +199,13 @@ const $=s=>document.querySelector(s);
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // Titles for the top bar per view (labels sourced from the sidebar config-driven nav)
-const VIEW_TITLES={home:'nav-home',escalas:'nav-escalas',eventos:'nav-eventos',manut:'nav-manut',membros:'nav-membros',financeiro:'nav-financeiro',doacoes:'nav-doacoes',config:'nav-config'};
+const VIEW_TITLES={home:'nav-home',escalas:'nav-escalas',eventos:'nav-eventos',manut:'nav-manut',membros:'nav-membros',devocional:'nav-devocional',avisos:'nav-avisos',oracao:'nav-oracao',financeiro:'nav-financeiro',doacoes:'nav-doacoes',config:'nav-config'};
 
 const getAvatars = () => Array.from({length:9}, (_,i)=>document.querySelector(`[data-template-id="avatar-${i+1}"]`)?.src || '').filter(Boolean);
 let pfAvatar='';
 
 let profiles=LS.get('profiles',[]),activeProfile=LS.get('active_profile',null);
-let members=LS.get('members',[]),escalas=LS.get('escalas',[]),eventos=LS.get('eventos',[]),manut=LS.get('manut',[]),financeiro=LS.get('financeiro',[]),doacoes=LS.get('doacoes',[]);
+let members=LS.get('members',[]),escalas=LS.get('escalas',[]),eventos=LS.get('eventos',[]),manut=LS.get('manut',[]),financeiro=LS.get('financeiro',[]),doacoes=LS.get('doacoes',[]),devocionais=LS.get('devocionais',[]),avisos=LS.get('avisos',[]),oracoes=LS.get('oracoes',[]);
 let settings=LS.get('settings',{churchName:'Igreja Betesda Fontes',theme:'dark'});
 let sidebarCollapsed=LS.get('sidebar_collapsed',false);
 
@@ -402,16 +405,16 @@ function updateTopTitle(v){
 }
 function switchView(v){
   if(!requireSensitiveAccess(v)) return;
-  ['home','escalas','eventos','manut','membros','financeiro','doacoes','config'].forEach(x=>$('#view-'+x)?.classList.toggle('hidden',x!==v));
+  ['home','escalas','eventos','manut','membros','devocional','avisos','oracao','financeiro','doacoes','config'].forEach(x=>$('#view-'+x)?.classList.toggle('hidden',x!==v));
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   updateTopTitle(v);
-  if(v==='home')renderHome();if(v==='membros')renderMembers();if(v==='escalas')renderEscalas();if(v==='eventos')renderEventos();if(v==='manut')renderManut();if(v==='financeiro')renderFinanceiro();if(v==='doacoes')renderDoacoes();
+  if(v==='home')renderHome();if(v==='membros')renderMembers();if(v==='escalas')renderEscalas();if(v==='eventos')renderEventos();if(v==='manut')renderManut();if(v==='devocional')renderDevocionais();if(v==='avisos')renderAvisos();if(v==='oracao')renderOracoes();if(v==='financeiro')renderFinanceiro();if(v==='doacoes')renderDoacoes();
   icons();
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(isMobileView())closeMobileSidebar();});
 document.querySelectorAll('[data-card-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.cardView));
 $('#add-quick').onclick=()=>{switchView('escalas');openEscalaModal();};
-$('#bell-btn').onclick=()=>toast('Sem novas notificações');
+$('#bell-btn').onclick=()=>openNotificationCenter();
 $('#topbar-theme').onclick=()=>{
   settings.theme = settings.theme==='light'?'dark':'light';
   LS.set('settings',settings);
@@ -467,7 +470,7 @@ function validAdminCredentials(user, password){
 }
 
 async function performProtectedReset(){
-  ['active_profile','members','escalas','eventos','manut','financeiro','doacoes','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));
+  ['active_profile','members','escalas','eventos','manut','financeiro','doacoes','devocionais','avisos','oracoes','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));
   profiles=[adminProfileTemplate()];LS.set('profiles',profiles);
   try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);toast('Erro ao apagar na nuvem');return false;}
   activeProfile=ADMIN_PROFILE_ID;LS.set('active_profile',activeProfile);
@@ -481,7 +484,7 @@ function openAdminResetModal(){
   $('#modal-form').innerHTML=`
     <div class="sm:col-span-2 rounded-xl p-3" style="border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.08)">
       <p class="font-semibold text-red-400 flex items-center gap-2"><i data-lucide="lock"></i> Zona de risco bloqueada</p>
-      <p class="muted text-sm mt-1">Digite o usuário e senha para essa ação. Essa ação apaga todos os cadastros, eventos, escalas, financeiro, doações e manutenções. O usuário ADM será preservado.</p>
+      <p class="muted text-sm mt-1">Digite o usuário e senha para essa ação. Essa ação apaga todos os cadastros, eventos, escalas, financeiro, doações, devocionais, avisos, pedidos de oração e manutenções. O usuário ADM será preservado.</p>
     </div>
     <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="admin-action-user">Usuário</label><input id="admin-action-user" class="w-full rounded-xl px-3 py-2" autocomplete="username" placeholder="ADM"></div>
     <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="admin-action-pass">Senha</label><input id="admin-action-pass" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password" placeholder="Senha do administrador"></div>
@@ -568,6 +571,8 @@ function renderHome(){
   inWk.forEach(e=>{const d=document.createElement('div');d.className='card2 rounded-xl p-3 text-sm flex flex-wrap items-center justify-between gap-2';d.innerHTML=`<div class="flex items-center gap-2 min-w-0"><i data-lucide="calendar-check" style="width:16px;height:16px;color:var(--accent)"></i><span class="font-medium">${fmtDate(e.date)} · ${esc(e.time||'')}</span></div><span class="muted text-xs truncate">${esc(e.preacher||'—')}</span>${statusChip('Confirmado')}`;wk.appendChild(d);});
 
   renderBirthdaysPanel();
+  renderHomeSpiritualPanels();
+  updateNotificationsBadge();
   icons();
 }
 
@@ -670,17 +675,269 @@ function renderManut(){
 $('#add-manut').onclick=()=>openManutModal();
 
 
+/* DEVOCIONAL / PLANO DE LEITURA */
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function sortedByDateDesc(list){return [...list].sort((a,b)=>(b.date||'').localeCompare(a.date||''));}
+
+
+/* DEVOCIONAL AUTOMÁTICO — PLANO DE LEITURA 2026
+   Gera automaticamente um devocional por dia de 01/07/2026 a 31/12/2026.
+   Não depende de cadastro manual nem de internet. Os devocionais manuais continuam funcionando como extras. */
+const AUTO_DEVOTIONAL_START='2026-07-01';
+const AUTO_DEVOTIONAL_END='2026-12-31';
+const AUTO_DEVOTIONAL_THEMES=[
+  {title:'Confiança em Deus',ref:'Salmos 37:5',reflection:'Confiar em Deus é entregar o caminho a Ele mesmo quando ainda não enxergamos todos os detalhes. A fé amadurece quando descansamos na direção do Senhor.',prayer:'Senhor, ajuda-nos a confiar em Ti e a caminhar com paz, mesmo quando não entendemos tudo.'},
+  {title:'Graça para hoje',ref:'2 Coríntios 12:9',reflection:'A graça de Deus não é apenas uma ideia bonita; ela é força real para permanecer firme no dia de hoje.',prayer:'Pai, que a Tua graça sustente nossa casa, nossa igreja e nossas decisões hoje.'},
+  {title:'Servir com alegria',ref:'Colossenses 3:23',reflection:'Servir na obra de Deus é mais do que cumprir uma escala. É oferecer o melhor ao Senhor com um coração sincero.',prayer:'Senhor, renova em nós a alegria de servir e a disposição para fazer tudo como para Ti.'},
+  {title:'Unidade no corpo',ref:'Efésios 4:3',reflection:'A igreja se fortalece quando cada pessoa escolhe preservar a unidade, tratar o outro com amor e caminhar em paz.',prayer:'Deus, guarda a unidade da nossa igreja e ensina-nos a honrar uns aos outros.'},
+  {title:'Palavra que guia',ref:'Salmos 119:105',reflection:'A Palavra de Deus ilumina decisões, corrige rotas e fortalece o coração para viver com sabedoria.',prayer:'Senhor, que a Tua Palavra ilumine nossos passos e governe nossas escolhas.'},
+  {title:'Perseverança na fé',ref:'Hebreus 12:1',reflection:'A caminhada cristã exige constância. Nem todo dia será fácil, mas Deus nos chama a permanecer olhando para Cristo.',prayer:'Jesus, fortalece nossa perseverança e tira de nós tudo que atrapalha nossa caminhada.'},
+  {title:'Amor em prática',ref:'1 João 3:18',reflection:'O amor cristão aparece em atitudes simples: ouvir, ajudar, perdoar, servir e cuidar de quem está perto.',prayer:'Pai, transforma nosso amor em atitudes que revelem o Teu coração.'},
+  {title:'Coração ensinável',ref:'Provérbios 9:9',reflection:'Quem tem um coração ensinável cresce em sabedoria. Deus trabalha em nós quando aceitamos ser corrigidos e guiados.',prayer:'Senhor, dá-nos humildade para aprender, mudar e crescer na Tua presença.'},
+  {title:'Paz em meio à pressão',ref:'Filipenses 4:6-7',reflection:'A paz de Deus não depende da ausência de problemas. Ela guarda o coração quando entregamos tudo em oração.',prayer:'Deus, guarda nossa mente e nosso coração com a Tua paz hoje.'},
+  {title:'Fidelidade nas pequenas coisas',ref:'Lucas 16:10',reflection:'A fidelidade começa nas pequenas responsabilidades. Deus vê o cuidado, a constância e a obediência diária.',prayer:'Senhor, ajuda-nos a sermos fiéis nas pequenas e grandes responsabilidades.'},
+  {title:'Renovo espiritual',ref:'Isaías 40:31',reflection:'Deus renova as forças daqueles que esperam Nele. Cansaço não é o fim quando o Senhor é a nossa fonte.',prayer:'Pai, renova nossa fé, nossa força e nossa esperança em Ti.'},
+  {title:'Chamados para frutificar',ref:'João 15:5',reflection:'A vida frutífera nasce da permanência em Cristo. Antes de fazer mais, somos chamados a estar Nele.',prayer:'Jesus, mantém-nos ligados a Ti para que nossa vida produza frutos verdadeiros.'},
+  {title:'Cuidado com as palavras',ref:'Provérbios 18:21',reflection:'Palavras podem curar ou ferir. O discípulo de Cristo aprende a falar com verdade, graça e responsabilidade.',prayer:'Senhor, governa nossas palavras e usa nossa boca para edificar.'},
+  {title:'Generosidade',ref:'Atos 20:35',reflection:'A generosidade reflete o coração de Deus. Dar, ajudar e compartilhar são sinais de uma vida transformada.',prayer:'Pai, ensina-nos a viver com mãos abertas e coração generoso.'},
+  {title:'Santidade diária',ref:'1 Pedro 1:15-16',reflection:'Santidade é viver separado para Deus nas escolhas comuns do dia: pensamentos, atitudes, conversas e prioridades.',prayer:'Senhor, purifica nosso coração e guia-nos em santidade.'},
+  {title:'Família no altar',ref:'Josué 24:15',reflection:'Uma casa firmada em Deus é construída com oração, perdão, cuidado e decisões que honram o Senhor.',prayer:'Deus, abençoa as famílias da nossa igreja e firma cada lar na Tua presença.'},
+  {title:'Esperança viva',ref:'1 Pedro 1:3',reflection:'A esperança cristã não é otimismo vazio; ela nasce da ressurreição de Jesus e sustenta a alma.',prayer:'Jesus, renova em nós a esperança viva que vem de Ti.'},
+  {title:'Coragem para obedecer',ref:'Deuteronômio 31:6',reflection:'Obedecer a Deus exige coragem, mas nunca caminhamos sozinhos. O Senhor vai conosco.',prayer:'Senhor, dá-nos coragem para obedecer mesmo quando for difícil.'},
+  {title:'Oração constante',ref:'1 Tessalonicenses 5:17',reflection:'Orar sem cessar é viver consciente da presença de Deus, levando a Ele cada preocupação e gratidão.',prayer:'Pai, aproxima-nos de Ti em uma vida de oração simples e constante.'},
+  {title:'Alegria no Senhor',ref:'Neemias 8:10',reflection:'A alegria do Senhor fortalece a alma. Ela não ignora as lutas, mas encontra descanso em Deus.',prayer:'Senhor, que a Tua alegria seja nossa força hoje.'},
+  {title:'Compaixão',ref:'Colossenses 3:12',reflection:'A compaixão nos move a perceber pessoas, dores e necessidades. Uma igreja saudável também é uma igreja sensível.',prayer:'Deus, dá-nos olhos atentos e coração compassivo.'},
+  {title:'Discernimento',ref:'Tiago 1:5',reflection:'Deus dá sabedoria a quem pede com fé. Antes de decidir, podemos buscar direção no Senhor.',prayer:'Pai, concede-nos sabedoria e discernimento para cada decisão.'},
+  {title:'Perdão',ref:'Efésios 4:32',reflection:'Perdoar não apaga a dor, mas quebra prisões e abre espaço para cura. Deus nos perdoou primeiro.',prayer:'Senhor, ajuda-nos a liberar perdão e caminhar em cura.'},
+  {title:'Adoração verdadeira',ref:'João 4:23',reflection:'Adoração não é apenas canção; é uma vida rendida a Deus em espírito e em verdade.',prayer:'Jesus, recebe nossa adoração em palavras, atitudes e obediência.'},
+  {title:'Dependência de Deus',ref:'Provérbios 3:5-6',reflection:'Depender de Deus é reconhecer que Ele enxerga o caminho inteiro. Nossa segurança está em confiar no Senhor.',prayer:'Pai, ensina-nos a depender de Ti em todas as áreas.'},
+  {title:'Crescimento espiritual',ref:'2 Pedro 3:18',reflection:'Crescer na fé é um processo diário. Pequenas escolhas consistentes produzem maturidade no tempo certo.',prayer:'Senhor, amadurece nossa fé e aumenta nosso conhecimento de Cristo.'},
+  {title:'Cuidado pastoral',ref:'1 Pedro 5:2',reflection:'Cuidar de pessoas é parte do coração de Deus. A igreja cresce quando há zelo, atenção e amor prático.',prayer:'Deus, fortalece todos que cuidam, lideram e servem pessoas.'},
+  {title:'Fé que age',ref:'Tiago 2:17',reflection:'A fé viva produz movimento. Ela se manifesta em obediência, serviço e amor concreto.',prayer:'Senhor, que nossa fé seja vista em atitudes que glorifiquem o Teu nome.'},
+  {title:'Gratidão',ref:'Salmos 103:2',reflection:'A gratidão ajuda o coração a lembrar o que Deus já fez. Quem se lembra da bondade de Deus caminha com mais fé.',prayer:'Pai, ensina-nos a reconhecer e agradecer Tuas bênçãos todos os dias.'},
+  {title:'Missão',ref:'Mateus 28:19',reflection:'A igreja existe para anunciar Cristo. Cada pessoa alcançada é motivo para servir com propósito e amor.',prayer:'Jesus, desperta em nós paixão pela missão e amor pelas pessoas.'},
+  {title:'Descanso em Deus',ref:'Mateus 11:28',reflection:'Cristo chama os cansados para perto. Descansar Nele é entregar pesos que não fomos chamados a carregar sozinhos.',prayer:'Senhor, recebe nossos pesos e dá descanso verdadeiro à nossa alma.'}
+];
+const NT_BOOKS_2026=[
+  ['Mateus',28],['Marcos',16],['Lucas',24],['João',21],['Atos',28],['Romanos',16],['1 Coríntios',16],['2 Coríntios',13],['Gálatas',6],['Efésios',6],['Filipenses',4],['Colossenses',4],['1 Tessalonicenses',5],['2 Tessalonicenses',3],['1 Timóteo',6],['2 Timóteo',4],['Tito',3],['Filemom',1],['Hebreus',13],['Tiago',5],['1 Pedro',5],['2 Pedro',3],['1 João',5],['2 João',1],['3 João',1],['Judas',1],['Apocalipse',22]
+];
+function isoDateFromParts(y,m,d){return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function dateRangeISO(start,end){
+  const out=[]; const s=new Date(start+'T00:00:00'); const e=new Date(end+'T00:00:00');
+  for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)) out.push(d.toISOString().slice(0,10));
+  return out;
+}
+function readingRange(book,start,end){return start===end?`${book} ${start}`:`${book} ${start}-${end}`;}
+function buildNtReadingPlan2026(totalDays){
+  const readings=[]; let bookIdx=0, chapter=1;
+  for(let i=0;i<totalDays;i++){
+    const parts=[];
+    let chaptersToday=(i%3===0)?2:1;
+    while(chaptersToday>0 && bookIdx<NT_BOOKS_2026.length){
+      const [book,total]=NT_BOOKS_2026[bookIdx];
+      const start=chapter;
+      const end=Math.min(total, chapter+chaptersToday-1);
+      parts.push(readingRange(book,start,end));
+      chaptersToday-=(end-start+1);
+      chapter=end+1;
+      if(chapter>total){bookIdx++;chapter=1;}
+    }
+    if(!parts.length){
+      const ps=((i*2)%150)+1;
+      parts.push(readingRange('Salmos',ps,Math.min(150,ps+1)));
+    }
+    readings.push(parts.join('; '));
+  }
+  return readings;
+}
+function buildAutoDevotionalPlan2026(){
+  const dates=dateRangeISO(AUTO_DEVOTIONAL_START,AUTO_DEVOTIONAL_END);
+  const nt=buildNtReadingPlan2026(dates.length);
+  return dates.map((date,i)=>{
+    const t=AUTO_DEVOTIONAL_THEMES[i%AUTO_DEVOTIONAL_THEMES.length];
+    const day=new Date(date+'T00:00:00').getDate();
+    const ps=((i)%150)+1;
+    const pv=((i)%31)+1;
+    const reading=`${nt[i]}\nSalmo ${ps}\nProvérbios ${pv}`;
+    return {
+      id:`auto-devocional-2026-${date}`,
+      auto:true,
+      date,
+      title:t.title,
+      type:'Devocional automático',
+      reference:t.ref,
+      reading,
+      content:`Reflexão:\n${t.reflection}\n\nOração:\n${t.prayer}\n\nPlano de leitura:\n${reading}`
+    };
+  });
+}
+const AUTO_DEVOTIONALS_2026=buildAutoDevotionalPlan2026();
+function getAllDevocionais(){
+  const manual=Array.isArray(devocionais)?devocionais.map(d=>({...d,auto:false})):[];
+  return [...manual,...AUTO_DEVOTIONALS_2026];
+}
+function sortDevocionaisForDisplay(list){
+  const today=todayISO();
+  return [...list].sort((a,b)=>{
+    const ap=(a.date||'')>=today?0:1;
+    const bp=(b.date||'')>=today?0:1;
+    if(ap!==bp) return ap-bp;
+    return ap===0?(a.date||'').localeCompare(b.date||''):(b.date||'').localeCompare(a.date||'');
+  });
+}
+function getDevocionalAtual(){
+  const all=getAllDevocionais();
+  const today=todayISO();
+  return all.find(d=>(d.date||'')===today) || sortedByDateDesc(all.filter(d=>(d.date||'')<=today))[0] || all[0] || null;
+}
+function renderHomeSpiritualPanels(){
+  const devBox=$('#home-devocional-box');
+  if(devBox){
+    const d=getDevocionalAtual();
+    devBox.innerHTML=d?`<p class="font-semibold text-[var(--text)]">${esc(d.title||'Devocional')}</p><p class="text-xs muted mt-1">${esc(d.reference||d.type||'')}</p><p class="mt-2 line-clamp-3">${esc((d.content||'').slice(0,220))}${(d.content||'').length>220?'...':''}</p><p class="text-[11px] muted mt-3">Plano automático 2026 · ${fmtDate(d.date)}</p>`:'Nenhum devocional disponível.';
+  }
+  const avBox=$('#home-avisos-box');
+  if(avBox){
+    const latest=sortedByDateDesc(avisos).slice(0,3);
+    avBox.innerHTML=latest.length?latest.map(a=>`<div class="card2 rounded-xl p-3"><p class="font-semibold text-[var(--text)] truncate">${esc(a.title||'Aviso')}</p><p class="text-xs muted">${fmtDate(a.date)} · ${esc(a.category||'Geral')}</p></div>`).join(''):'Nenhum aviso publicado.';
+  }
+  const orBox=$('#home-oracao-box');
+  if(orBox){
+    const active=oracoes.filter(o=>(o.status||'Em oração')!=='Respondido');
+    orBox.innerHTML=active.length?`<p class="font-semibold text-[var(--text)]">${active.length} pedido(s) em oração</p><p class="text-xs muted mt-1">Último: ${esc(active[0]?.requester||'Não informado')}</p><p class="mt-2">${esc((active[0]?.request||'').slice(0,120))}${(active[0]?.request||'').length>120?'...':''}</p>`:'Nenhum pedido em oração.';
+  }
+}
+function renderDevocionais(){
+  const list=sortDevocionaisForDisplay(getAllDevocionais());
+  const current=getDevocionalAtual();
+  const c=$('#devocional-list'); if(!c) return;
+  c.innerHTML=''; $('#devocional-empty')?.classList.add('hidden');
+  const destaque=$('#devocional-hoje');
+  if(destaque && current){
+    destaque.innerHTML=`<div class="card rounded-2xl p-5 mb-5 devotional-today-card"><div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-xs uppercase tracking-wide muted">Devocional de hoje · ${fmtDate(current.date)}</p><h3 class="font-bold text-xl mt-1 flex items-center gap-2"><i data-lucide="sunrise" style="color:var(--accent)"></i>${esc(current.title||'Devocional do dia')}</h3><p class="text-sm muted mt-1">${esc(current.reference||'')}</p></div><span class="text-xs px-3 py-1 rounded-full card2">Plano automático 2026</span></div><p class="muted text-sm mt-4 whitespace-pre-line">${esc(current.content||'')}</p></div>`;
+  }
+  list.forEach(dv=>{
+    const d=document.createElement('div');d.className='card rounded-2xl p-4';
+    const isAuto=!!dv.auto;
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="book-open" style="color:var(--accent)"></i>${esc(dv.title||'Devocional')}</p><p class="muted text-sm">${fmtDate(dv.date)} · ${esc(dv.type||'Devocional')}</p></div><div class="flex gap-1 shrink-0">${isAuto?'<span class="text-[11px] px-2 py-1 rounded-full card2 muted">Auto</span>':'<button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button>'}</div></div>${dv.reference?`<p class="text-sm mt-3 font-medium">${esc(dv.reference)}</p>`:''}<p class="muted text-sm mt-2 whitespace-pre-line">${esc(dv.content||'')}</p>`;
+    if(!isAuto){
+      d.querySelector('.ed').onclick=()=>openDevocionalModal(dv);
+      d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{devocionais=devocionais.filter(x=>x.id!==dv.id);LS.set('devocionais',devocionais);renderDevocionais();renderHomeSpiritualPanels();toast('Devocional excluído');});
+    }
+    c.appendChild(d);
+  });
+  icons();
+}
+$('#add-devocional') && ($('#add-devocional').onclick=()=>openDevocionalModal());
+function openDevocionalModal(d){d=d||{};openModal(d.id?'Editar devocional':'Novo devocional',[
+  {k:'title',l:'Título *',v:d.title,wide:true},{k:'type',l:'Tipo',v:d.type||'Devocional',type:'select',opts:['Devocional','Plano de leitura','Estudo bíblico']},
+  {k:'date',l:'Data',v:d.date||todayISO(),type:'date'},{k:'reference',l:'Referência bíblica',v:d.reference},
+  {k:'content',l:'Mensagem / leitura',v:d.content,type:'textarea',wide:true}
+],v=>{if(d.id)Object.assign(d,v);else devocionais.push({id:uid(),...v});LS.set('devocionais',devocionais);renderDevocionais();renderHomeSpiritualPanels();toast('Devocional salvo');});}
+
+/* MURAL DE AVISOS */
+function renderAvisos(){
+  const list=sortedByDateDesc(avisos);
+  const c=$('#avisos-list'); if(!c) return;
+  c.innerHTML=''; $('#avisos-empty')?.classList.toggle('hidden',list.length>0);
+  list.forEach(av=>{
+    const d=document.createElement('div');d.className='card rounded-2xl p-4';
+    const pr=av.priority||'Normal';
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="megaphone" style="color:var(--accent)"></i>${esc(av.title||'Aviso')}</p><p class="muted text-sm">${fmtDate(av.date)} · ${esc(av.category||'Geral')}</p></div><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="mt-2">${statusChip(pr)}</p><p class="muted text-sm mt-3 whitespace-pre-line">${esc(av.message||'')}</p>${av.author?`<p class="muted text-xs mt-3">Publicado por: ${esc(av.author)}</p>`:''}`;
+    d.querySelector('.ed').onclick=()=>openAvisoModal(av);
+    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{avisos=avisos.filter(x=>x.id!==av.id);LS.set('avisos',avisos);renderAvisos();renderHomeSpiritualPanels();toast('Aviso excluído');});
+    c.appendChild(d);
+  });
+  icons();
+}
+$('#add-aviso') && ($('#add-aviso').onclick=()=>openAvisoModal());
+function openAvisoModal(a){a=a||{};openModal(a.id?'Editar aviso':'Novo aviso',[
+  {k:'title',l:'Título *',v:a.title,wide:true},{k:'category',l:'Categoria',v:a.category||'Geral',type:'select',opts:['Geral','Culto','Evento','Louvor','Reunião','Urgente']},
+  {k:'date',l:'Data',v:a.date||todayISO(),type:'date'},{k:'priority',l:'Prioridade',v:a.priority||'Normal',type:'select',opts:['Normal','Importante','Urgente']},
+  {k:'message',l:'Mensagem',v:a.message,type:'textarea',wide:true},{k:'author',l:'Responsável',v:a.author}
+],v=>{if(a.id)Object.assign(a,v);else avisos.push({id:uid(),...v});LS.set('avisos',avisos);renderAvisos();renderHomeSpiritualPanels();toast('Aviso salvo');});}
+
+/* PEDIDOS DE ORAÇÃO */
+function renderOracoes(){
+  const list=sortedByDateDesc(oracoes);
+  const open=list.filter(o=>(o.status||'Em oração')!=='Respondido').length;
+  const answered=list.filter(o=>(o.status||'Em oração')==='Respondido').length;
+  $('#oracao-abertos') && ($('#oracao-abertos').textContent=open);
+  $('#oracao-respondidos') && ($('#oracao-respondidos').textContent=answered);
+  $('#oracao-total') && ($('#oracao-total').textContent=list.length);
+  const c=$('#oracao-list'); if(!c) return;
+  c.innerHTML=''; $('#oracao-empty')?.classList.toggle('hidden',list.length>0);
+  list.forEach(or=>{
+    const d=document.createElement('div');d.className='card rounded-2xl p-4';
+    const answered=(or.status||'Em oração')==='Respondido';
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="hand" style="color:var(--accent)"></i>${esc(or.requester||'Pedido de oração')}</p><p class="muted text-sm">${fmtDate(or.date)} · ${esc(or.category||'Geral')}</p></div><div class="flex gap-1 shrink-0"><button class="tg muted hover:text-[var(--accent)]" title="Alternar status" aria-label="Alternar status"><i data-lucide="check-circle"></i></button><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="mt-2">${statusChip(answered?'Respondido':'Em oração')}</p><p class="muted text-sm mt-3 whitespace-pre-line">${esc(or.request||'')}</p>`;
+    d.querySelector('.tg').onclick=()=>{or.status=answered?'Em oração':'Respondido';LS.set('oracoes',oracoes);renderOracoes();renderHomeSpiritualPanels();toast('Status atualizado');};
+    d.querySelector('.ed').onclick=()=>openOracaoModal(or);
+    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{oracoes=oracoes.filter(x=>x.id!==or.id);LS.set('oracoes',oracoes);renderOracoes();renderHomeSpiritualPanels();toast('Pedido excluído');});
+    c.appendChild(d);
+  });
+  icons();
+}
+$('#add-oracao') && ($('#add-oracao').onclick=()=>openOracaoModal());
+function openOracaoModal(o){o=o||{};openModal(o.id?'Editar pedido':'Novo pedido de oração',[
+  {k:'requester',l:'Nome *',v:o.requester,wide:true},{k:'category',l:'Categoria',v:o.category||'Geral',type:'select',opts:['Geral','Saúde','Família','Trabalho','Espiritual','Gratidão','Outro']},
+  {k:'date',l:'Data',v:o.date||todayISO(),type:'date'},{k:'status',l:'Status',v:o.status||'Em oração',type:'select',opts:['Em oração','Respondido']},
+  {k:'request',l:'Pedido / gratidão',v:o.request,type:'textarea',wide:true}
+],v=>{if(o.id)Object.assign(o,v);else oracoes.push({id:uid(),...v});LS.set('oracoes',oracoes);renderOracoes();renderHomeSpiritualPanels();toast('Pedido salvo');});}
+
+/* NOTIFICAÇÕES */
+function getNotifications(){
+  const notes=[];
+  const devotionalToday=getDevocionalAtual();
+  if(devotionalToday) notes.push({icon:'book-open',title:'Devocional de hoje',text:`${devotionalToday.title||'Devocional'} · ${devotionalToday.reference||fmtDate(devotionalToday.date)}`});
+  getMonthlyBirthdays().slice(0,5).forEach(p=>notes.push({icon:'cake',title:`Aniversário: ${p.name}`,text:`${fmtBirthDate(p.birthDate)} · ${p.kind}${p.role?' · '+p.role:''}`}));
+  sortedByDateDesc(avisos).slice(0,3).forEach(a=>notes.push({icon:'megaphone',title:a.title||'Aviso',text:`${fmtDate(a.date)} · ${a.category||'Geral'}`}));
+  const prayers=oracoes.filter(o=>(o.status||'Em oração')!=='Respondido');
+  if(prayers.length) notes.push({icon:'hand',title:'Pedidos de oração',text:`${prayers.length} pedido(s) em oração`});
+  const upEvt=eventos.filter(e=>parse(e.date)>=new Date(NOW.toDateString())).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  if(upEvt) notes.push({icon:'party-popper',title:'Próximo evento',text:`${upEvt.name} · ${fmtDate(upEvt.date)}`});
+  const upEsc=escalas.filter(e=>parse(e.date)>=new Date(NOW.toDateString())).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  if(upEsc) notes.push({icon:'calendar-check',title:'Próxima escala',text:`${fmtDate(upEsc.date)} ${upEsc.time||''}`});
+  return notes;
+}
+function updateNotificationsBadge(){
+  const btn=$('#bell-btn'); if(!btn) return;
+  let badge=btn.querySelector('.notif-badge');
+  const count=getNotifications().length;
+  if(!badge){badge=document.createElement('span');badge.className='notif-badge';btn.style.position='relative';btn.appendChild(badge);}
+  badge.textContent=count>9?'9+':count;
+  badge.classList.toggle('hidden',count===0);
+}
+function openNotificationCenter(){
+  resetModalSaveButton();
+  const notes=getNotifications();
+  $('#modal-title').textContent='Notificações';
+  $('#modal-form').innerHTML=notes.length?`<div class="sm:col-span-2 space-y-2">${notes.map(n=>`<div class="card2 rounded-xl p-3 flex items-start gap-3"><i data-lucide="${n.icon}" style="color:var(--accent)"></i><div><p class="font-semibold">${esc(n.title)}</p><p class="muted text-sm">${esc(n.text||'')}</p></div></div>`).join('')}</div>`:'<p class="sm:col-span-2 muted text-sm">Nenhuma notificação no momento.</p>';
+  $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
+  const saveBtn=$('#modal-save');
+  saveBtn.disabled=true;saveBtn.classList.remove('accent-grad','text-white');saveBtn.style.display='none';
+  icons();
+}
+
 /* FINANCEIRO */
 function renderFinanceiro(){
   const list=[...financeiro].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const entradas=list.filter(x=>x.type==='Entrada').reduce((s,x)=>s+(Number(String(x.value||0).replace(',','.'))||0),0);
   const saidas=list.filter(x=>x.type==='Saída').reduce((s,x)=>s+(Number(String(x.value||0).replace(',','.'))||0),0);
   $('#fin-entradas').textContent=money(entradas);$('#fin-saidas').textContent=money(saidas);$('#fin-saldo').textContent=money(entradas-saidas);
+  const resumo=$('#financeiro-resumo');
+  if(resumo){
+    const porCat={};
+    list.forEach(x=>{const k=x.category||'Sem categoria';porCat[k]=(porCat[k]||0)+(Number(String(x.value||0).replace(',','.'))||0)*(x.type==='Saída'?-1:1);});
+    const rows=Object.entries(porCat).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+    resumo.classList.toggle('hidden',rows.length===0);
+    resumo.innerHTML=rows.length?`<p class="font-semibold mb-2">Resumo por categoria</p><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">${rows.map(([k,v])=>`<div class="card2 rounded-xl p-3"><p class="muted text-xs truncate">${esc(k)}</p><p class="font-semibold ${v>=0?'role-di':'role-or'}">${money(v)}</p></div>`).join('')}</div>`:'';
+  }
   const c=$('#financeiro-list');c.innerHTML='';$('#financeiro-empty').classList.toggle('hidden',list.length>0);
   list.forEach(f=>{
     const d=document.createElement('div');d.className='card rounded-2xl p-4';
     const isEntrada=f.type==='Entrada';
-    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div><p class="font-semibold flex items-center gap-2"><i data-lucide="${isEntrada?'arrow-down-circle':'arrow-up-circle'}" class="${isEntrada?'role-di':'role-or'}"></i>${esc(f.title||f.category||f.type)}</p><p class="muted text-sm">${fmtDate(f.date)} · ${esc(f.category||'')}</p></div><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="font-bold text-xl mt-3 ${isEntrada?'role-di':'role-or'}">${money(f.value)}</p>${f.notes?`<p class="muted text-xs mt-2">${esc(f.notes)}</p>`:''}`;
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div><p class="font-semibold flex items-center gap-2"><i data-lucide="${isEntrada?'arrow-down-circle':'arrow-up-circle'}" class="${isEntrada?'role-di':'role-or'}"></i>${esc(f.title||f.category||f.type)}</p><p class="muted text-sm">${fmtDate(f.date)} · ${esc(f.category||'')} ${f.method?'· '+esc(f.method):''}</p></div><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="font-bold text-xl mt-3 ${isEntrada?'role-di':'role-or'}">${money(f.value)}</p>${f.notes?`<p class="muted text-xs mt-2">${esc(f.notes)}</p>`:''}`;
     d.querySelector('.ed').onclick=()=>openFinanceiroModal(f);
     d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{financeiro=financeiro.filter(x=>x.id!==f.id);LS.set('financeiro',financeiro);renderFinanceiro();toast('Movimentação excluída');});
     c.appendChild(d);
@@ -690,7 +947,7 @@ function renderFinanceiro(){
 $('#add-financeiro').onclick=()=>openFinanceiroModal();
 function openFinanceiroModal(f){f=f||{};openModal(f.id?'Editar movimentação':'Nova movimentação',[
   {k:'title',l:'Descrição *',v:f.title,wide:true},{k:'type',l:'Tipo',v:f.type||'Entrada',type:'select',opts:['Entrada','Saída']},
-  {k:'value',l:'Valor',v:f.value,type:'number'},{k:'date',l:'Data',v:f.date,type:'date'},{k:'category',l:'Categoria',v:f.category},{k:'notes',l:'Observações',v:f.notes,type:'textarea',wide:true}
+  {k:'value',l:'Valor',v:f.value,type:'number'},{k:'date',l:'Data',v:f.date,type:'date'},{k:'category',l:'Categoria',v:f.category},{k:'method',l:'Forma',v:f.method||'Pix',type:'select',opts:['Pix','Dinheiro','Cartão','Transferência','Outro']},{k:'notes',l:'Observações',v:f.notes,type:'textarea',wide:true}
 ],v=>{if(f.id)Object.assign(f,v);else financeiro.push({id:uid(),...v});LS.set('financeiro',financeiro);renderFinanceiro();toast('Movimentação salva');});}
 
 /* DOAÇÕES */
@@ -698,10 +955,16 @@ function renderDoacoes(){
   const list=[...doacoes].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const total=list.reduce((s,x)=>s+(Number(String(x.value||0).replace(',','.'))||0),0);
   $('#doacoes-total').textContent=money(total);
+  const resumo=$('#doacoes-resumo');
+  if(resumo){
+    const porTipo={}; list.forEach(x=>{const k=x.type||'Oferta';porTipo[k]=(porTipo[k]||0)+(Number(String(x.value||0).replace(',','.'))||0);});
+    const rows=Object.entries(porTipo).sort((a,b)=>b[1]-a[1]);
+    resumo.innerHTML=rows.length?`<p class="muted text-xs mb-1">Resumo por tipo</p>${rows.slice(0,3).map(([k,v])=>`<p class="text-sm flex justify-between gap-2"><span class="muted">${esc(k)}</span><strong>${money(v)}</strong></p>`).join('')}`:'<p class="muted text-xs mb-1">Resumo</p><p class="muted text-sm">Sem dados</p>';
+  }
   const c=$('#doacoes-list');c.innerHTML='';$('#doacoes-empty').classList.toggle('hidden',list.length>0);
   list.forEach(dn=>{
     const d=document.createElement('div');d.className='card rounded-2xl p-4';
-    d.innerHTML=`<div class="flex items-start justify-between gap-2"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="heart" class="role-di"></i>${esc(dn.donor||'Doador não informado')}</p><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="font-bold text-xl mt-3 role-di">${money(dn.value)}</p><p class="muted text-sm">${fmtDate(dn.date)} · ${esc(dn.method||'')}</p>${dn.notes?`<p class="muted text-xs mt-2">${esc(dn.notes)}</p>`:''}`;
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="heart" class="role-di"></i>${esc(dn.donor||'Doador não informado')}</p><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="font-bold text-xl mt-3 role-di">${money(dn.value)}</p><p class="muted text-sm">${fmtDate(dn.date)} · ${esc(dn.type||'Oferta')} · ${esc(dn.method||'')}</p>${dn.notes?`<p class="muted text-xs mt-2">${esc(dn.notes)}</p>`:''}`;
     d.querySelector('.ed').onclick=()=>openDoacaoModal(dn);
     d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{doacoes=doacoes.filter(x=>x.id!==dn.id);LS.set('doacoes',doacoes);renderDoacoes();toast('Doação excluída');});
     c.appendChild(d);
@@ -711,7 +974,7 @@ function renderDoacoes(){
 $('#add-doacao').onclick=()=>openDoacaoModal();
 function openDoacaoModal(d){d=d||{};openModal(d.id?'Editar doação':'Nova doação',[
   {k:'donor',l:'Doador *',v:d.donor,wide:true},{k:'value',l:'Valor',v:d.value,type:'number'},
-  {k:'date',l:'Data',v:d.date,type:'date'},{k:'method',l:'Forma',v:d.method||'Pix',type:'select',opts:['Pix','Dinheiro','Cartão','Transferência','Outro']},
+  {k:'type',l:'Tipo',v:d.type||'Oferta',type:'select',opts:['Dízimo','Oferta','Missões','Campanha','Evento','Outro']},{k:'date',l:'Data',v:d.date,type:'date'},{k:'method',l:'Forma',v:d.method||'Pix',type:'select',opts:['Pix','Dinheiro','Cartão','Transferência','Outro']},
   {k:'notes',l:'Observações',v:d.notes,type:'textarea',wide:true}
 ],v=>{if(d.id)Object.assign(d,v);else doacoes.push({id:uid(),...v});LS.set('doacoes',doacoes);renderDoacoes();toast('Doação salva');});}
 
@@ -847,7 +1110,7 @@ boot();
 (function applyShortcutView(){
   const params = new URLSearchParams(location.search);
   const v = params.get('view');
-  if (v && ['home','escalas','eventos','manut','membros','financeiro','doacoes','config'].includes(v) && !$('#app').classList.contains('hidden')) {
+  if (v && ['home','escalas','eventos','manut','membros','devocional','avisos','oracao','financeiro','doacoes','config'].includes(v) && !$('#app').classList.contains('hidden')) {
     switchView(v);
   }
 })();
@@ -860,7 +1123,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-aniversariantes-v13-visivel';
+const APP_VERSION = '20260704-devocional-anual-2026-v15';
 
 (function forceOneTimeCacheRefresh(){
   try{

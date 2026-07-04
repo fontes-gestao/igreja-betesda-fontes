@@ -509,3 +509,40 @@ html.light .collapse-toggle:hover {
   text-transform: uppercase;
   margin-top: .15rem;
 }
+
+/* Módulos adicionados: devocional, avisos, oração e notificações */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 700;
+  border: 2px solid var(--topbar);
+}
+.mobile-bottom-nav .nav-btn {
+  flex: 0 0 auto;
+}
+.home-ministry-panels .card {
+  min-height: 160px;
+}
+
+/* Devocional automático */
+.devotional-today-card {
+  background:
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.18), transparent 35%),
+    var(--card);
+}

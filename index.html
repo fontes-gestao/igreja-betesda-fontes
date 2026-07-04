@@ -9,10 +9,10 @@
   <title>Igreja Betesda Fontes - Sistema de Gestão</title>
 
   <!-- PWA: manifest e cor de tema (sincronizada com dark/light no script.js) -->
-  <link rel="manifest" href="manifest.json?v=20260704-aniversariantes-v13-visivel">
+  <link rel="manifest" href="manifest.json?v=20260704-devocional-anual-2026-v15">
   <meta name="theme-color" id="meta-theme-color" content="#0A0B13">
-  <!-- BUILD: 20260704-aniversariantes-v13-visivel -->
-  <meta name="app-version" content="20260704-aniversariantes-v13-visivel">
+  <!-- BUILD: 20260704-devocional-anual-2026-v15 -->
+  <meta name="app-version" content="20260704-devocional-anual-2026-v15">
 
   <!-- PWA: iOS (Safari não lê manifest.json da mesma forma que Android) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260704-aniversariantes-v13-visivel">
+  <link rel="stylesheet" href="style.css?v=20260704-devocional-anual-2026-v15">
  </head>
  <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
   <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
@@ -97,6 +97,9 @@
      <button data-view="eventos" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="party-popper" class="shrink-0"></i><span data-template-id="nav-eventos" class="canva-text nav-label">Eventos</span></button>
      <button data-view="manut" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="wrench" class="shrink-0"></i><span data-template-id="nav-manut" class="canva-text nav-label">Manutenções</span></button>
      <button data-view="membros" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="users" class="shrink-0"></i><span data-template-id="nav-membros" class="canva-text nav-label">Membros</span></button>
+     <button data-view="devocional" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="book-open" class="shrink-0"></i><span data-template-id="nav-devocional" class="canva-text nav-label">Devocional</span></button>
+     <button data-view="avisos" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="megaphone" class="shrink-0"></i><span data-template-id="nav-avisos" class="canva-text nav-label">Mural de Avisos</span></button>
+     <button data-view="oracao" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="hand" class="shrink-0"></i><span data-template-id="nav-oracao" class="canva-text nav-label">Pedidos de Oração</span></button>
      <button data-view="financeiro" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm sensitive-nav"><i data-lucide="dollar-sign" class="shrink-0"></i><span data-template-id="nav-financeiro" class="canva-text nav-label">Financeiro</span></button>
      <button data-view="doacoes" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm sensitive-nav"><i data-lucide="heart" class="shrink-0"></i><span data-template-id="nav-doacoes" class="canva-text nav-label">Doações</span></button>
      <button data-view="config" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="settings" class="shrink-0"></i><span data-template-id="nav-config" class="canva-text nav-label">Configurações</span></button>
@@ -111,12 +114,15 @@
      </div><div class="flex items-center gap-1 shrink-0"><button id="edit-profile" title="Editar perfil" aria-label="Editar perfil" class="muted hover:text-[var(--accent)] p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="pencil"></i></button><button id="switch-profile" title="Trocar perfil" aria-label="Trocar perfil" class="muted hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="log-out"></i></button></div>
     </div>
    </aside><!-- Mobile bottom nav -->
-   <div class="md:hidden fixed bottom-0 left-0 right-0 side z-30 grid grid-cols-8 gap-1 px-2 py-2 mobile-bottom-nav">
+   <div class="md:hidden fixed bottom-0 left-0 right-0 side z-30 flex justify-around gap-1 px-2 py-2 mobile-bottom-nav overflow-x-auto">
     <button data-view="home" class="nav-btn rounded-xl p-2" aria-label="Início"><i data-lucide="home"></i></button>
     <button data-view="escalas" class="nav-btn rounded-xl p-2" aria-label="Escalas"><i data-lucide="calendar-check"></i></button>
     <button data-view="eventos" class="nav-btn rounded-xl p-2" aria-label="Eventos"><i data-lucide="party-popper"></i></button>
     <button data-view="manut" class="nav-btn rounded-xl p-2" aria-label="Manutenções"><i data-lucide="wrench"></i></button>
     <button data-view="membros" class="nav-btn rounded-xl p-2" aria-label="Membros"><i data-lucide="users"></i></button>
+    <button data-view="devocional" class="nav-btn rounded-xl p-2" aria-label="Devocional"><i data-lucide="book-open"></i></button>
+    <button data-view="avisos" class="nav-btn rounded-xl p-2" aria-label="Avisos"><i data-lucide="megaphone"></i></button>
+    <button data-view="oracao" class="nav-btn rounded-xl p-2" aria-label="Oração"><i data-lucide="hand"></i></button>
     <button data-view="financeiro" class="nav-btn rounded-xl p-2 sensitive-nav" aria-label="Financeiro"><i data-lucide="dollar-sign"></i></button>
     <button data-view="doacoes" class="nav-btn rounded-xl p-2 sensitive-nav" aria-label="Doações"><i data-lucide="heart"></i></button>
     <button data-view="config" class="nav-btn rounded-xl p-2" aria-label="Configurações"><i data-lucide="settings"></i></button>
@@ -151,6 +157,21 @@
        <p id="birthday-empty" class="muted text-sm hidden">Nenhum aniversariante cadastrado para este mês.</p>
       </div>
 
+
+      <div class="grid lg:grid-cols-3 gap-4 mb-6 home-ministry-panels">
+       <div class="card rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-bold flex items-center gap-2"><i data-lucide="book-open" style="color:var(--accent)"></i> Devocional</h3><button data-card-view="devocional" class="text-xs muted hover:text-[var(--accent)]">Ver todos</button></div>
+        <div id="home-devocional-box" class="text-sm muted">Carregando devocional automático...</div>
+       </div>
+       <div class="card rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-bold flex items-center gap-2"><i data-lucide="megaphone" style="color:var(--accent)"></i> Mural de Avisos</h3><button data-card-view="avisos" class="text-xs muted hover:text-[var(--accent)]">Ver mural</button></div>
+        <div id="home-avisos-box" class="space-y-2 text-sm muted">Nenhum aviso publicado.</div>
+       </div>
+       <div class="card rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3"><h3 class="font-bold flex items-center gap-2"><i data-lucide="hand" style="color:var(--accent)"></i> Pedidos de Oração</h3><button data-card-view="oracao" class="text-xs muted hover:text-[var(--accent)]">Ver pedidos</button></div>
+        <div id="home-oracao-box" class="space-y-2 text-sm muted">Nenhum pedido em oração.</div>
+       </div>
+      </div>
 
       <div class="dashboard-photo-grid mb-8">
        <button data-card-view="escalas" class="photo-card photo-card-large" style="--photo:url('assets/cards/card-culto.png')">
@@ -231,6 +252,37 @@
       </div>
       <div id="manut-list" class="grid md:grid-cols-2 gap-4"></div>
       <p id="manut-empty" data-template-id="empty-manut" class="canva-text muted text-center py-10 hidden">Nenhuma manutenção cadastrada</p>
+     </section><!-- DEVOCIONAL -->
+     <section id="view-devocional" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <div><h2 data-template-id="devocional-title" class="canva-text font-bold">Devocional / Plano de leitura</h2><p class="muted text-sm">Devocional automático diário e plano de leitura de julho a dezembro de 2026.</p></div><button id="add-devocional" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Adicionar extra</span></button>
+      </div>
+      <div id="devocional-hoje"></div>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3 mt-2">
+       <h3 class="font-bold flex items-center gap-2"><i data-lucide="calendar-days" style="color:var(--accent)"></i> Plano anual 2026</h3>
+       <span class="text-xs px-3 py-1 rounded-full card2 muted">Julho a Dezembro · Automático</span>
+      </div>
+      <div id="devocional-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="devocional-empty" class="canva-text muted text-center py-10 hidden">Nenhum devocional cadastrado</p>
+     </section><!-- MURAL DE AVISOS -->
+     <section id="view-avisos" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <div><h2 data-template-id="avisos-title" class="canva-text font-bold">Mural de Avisos</h2><p class="muted text-sm">Comunicados, reuniões, ensaios e informações importantes.</p></div><button id="add-aviso" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Novo aviso</span></button>
+      </div>
+      <div id="avisos-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="avisos-empty" class="canva-text muted text-center py-10 hidden">Nenhum aviso publicado</p>
+     </section><!-- PEDIDOS DE ORAÇÃO -->
+     <section id="view-oracao" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <div><h2 data-template-id="oracao-title" class="canva-text font-bold">Pedidos de Oração</h2><p class="muted text-sm">Acompanhe pedidos, gratidões e respostas de oração.</p></div><button id="add-oracao" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Novo pedido</span></button>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 mb-5">
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Em oração</p><p id="oracao-abertos" class="font-bold text-2xl role-or">0</p></div>
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Respondidos</p><p id="oracao-respondidos" class="font-bold text-2xl role-di">0</p></div>
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Total</p><p id="oracao-total" class="font-bold text-2xl">0</p></div>
+      </div>
+      <div id="oracao-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="oracao-empty" class="canva-text muted text-center py-10 hidden">Nenhum pedido de oração cadastrado</p>
      </section><!-- CONFIG -->
      <section id="view-financeiro" class="hidden fade-in">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -241,6 +293,7 @@
        <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Saídas</p><p id="fin-saidas" class="font-bold text-2xl role-or">R$ 0,00</p></div>
        <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Saldo</p><p id="fin-saldo" class="font-bold text-2xl">R$ 0,00</p></div>
       </div>
+      <div id="financeiro-resumo" class="card rounded-2xl p-4 mb-5 hidden"></div>
       <div id="financeiro-list" class="grid md:grid-cols-2 gap-4"></div>
       <p id="financeiro-empty" class="canva-text muted text-center py-10 hidden">Nenhuma movimentação cadastrada</p>
      </section><!-- DOAÇÕES -->
@@ -248,7 +301,7 @@
       <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
        <h2 data-template-id="doacoes-title" class="canva-text font-bold">Doações</h2><button id="add-doacao" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Nova doação</span></button>
       </div>
-      <div class="card rounded-2xl p-4 mb-5"><p class="muted text-xs mb-1">Total recebido</p><p id="doacoes-total" class="font-bold text-2xl role-di">R$ 0,00</p></div>
+      <div class="grid sm:grid-cols-2 gap-4 mb-5"><div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Total recebido</p><p id="doacoes-total" class="font-bold text-2xl role-di">R$ 0,00</p></div><div id="doacoes-resumo" class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Resumo</p><p class="muted text-sm">Sem dados</p></div></div>
       <div id="doacoes-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       <p id="doacoes-empty" class="canva-text muted text-center py-10 hidden">Nenhuma doação cadastrada</p>
      </section><!-- CONFIG -->
@@ -324,6 +377,6 @@
    </div>
   </div>
 
-  <script type="module" src="script.js?v=20260704-aniversariantes-v13-visivel"></script>
+  <script type="module" src="script.js?v=20260704-devocional-anual-2026-v15"></script>
  </body>
 </html>
