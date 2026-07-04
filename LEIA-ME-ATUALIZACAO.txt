@@ -1,19 +1,18 @@
-Atualização: Aniversariantes + correção de cache e sincronização
+Atualização: Aniversariantes do mês visível + cache reforçado
 
-Versão: 20260704-aniversariantes-v12-cache-sync
+Versão: 20260704-aniversariantes-v13-visivel
 
-Incluído/validado:
-- Campo Data de nascimento no cadastro de perfil/usuário.
-- Campo Data de nascimento no cadastro de membros.
-- Quadro "Aniversariantes do mês" na tela inicial.
-- Correção para o PWA buscar arquivos novos sem precisar limpar o histórico do navegador nas próximas atualizações.
-- Proteção contra snapshot antigo do Firestore sobrescrever perfil recém-criado.
+O que mudou:
+- Quadro "Aniversariantes do mês" agora aparece logo no início da tela inicial, antes dos cards principais.
+- Campo "Data de nascimento" no cadastro de perfil/usuário.
+- Campo "Data de nascimento" no cadastro de membros.
+- Data de nascimento também aparece na tela Configurações > Meu perfil.
+- Cache/PWA atualizado para tentar carregar a versão nova sem precisar limpar histórico toda hora.
 
-Subir no GitHub:
-1. Extraia este ZIP.
-2. Entre na pasta pwa.
-3. Envie tudo em Add file > Upload files.
-4. Commit sugerido: Aniversariantes + correção de cache.
+Como publicar:
+1. Entre na pasta pwa.
+2. Suba todos os arquivos no GitHub com Add file > Upload files.
+3. Commit sugerido: Aniversariantes do mês visível.
 
 Observação:
-Na primeira abertura após publicar, pode ser necessário fechar e abrir o app/site uma vez, porque o navegador ainda pode estar com o service worker antigo. Depois desta versão, as próximas atualizações devem carregar bem melhor.
+Se o iPhone ainda mostrar a versão antiga na primeira abertura, feche o app/site e abra novamente. Depois dessa versão, as próximas atualizações devem ser carregadas melhor.

@@ -9,9 +9,10 @@
   <title>Igreja Betesda Fontes - Sistema de Gestão</title>
 
   <!-- PWA: manifest e cor de tema (sincronizada com dark/light no script.js) -->
-  <link rel="manifest" href="manifest.json?v=20260704-aniversariantes-v12-cache-sync">
+  <link rel="manifest" href="manifest.json?v=20260704-aniversariantes-v13-visivel">
   <meta name="theme-color" id="meta-theme-color" content="#0A0B13">
-  <meta name="app-version" content="20260704-aniversariantes-v12-cache-sync">
+  <!-- BUILD: 20260704-aniversariantes-v13-visivel -->
+  <meta name="app-version" content="20260704-aniversariantes-v13-visivel">
 
   <!-- PWA: iOS (Safari não lê manifest.json da mesma forma que Android) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,7 +29,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260704-aniversariantes-v12-cache-sync">
+  <link rel="stylesheet" href="style.css?v=20260704-aniversariantes-v13-visivel">
  </head>
  <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
   <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
@@ -138,6 +139,19 @@
        </div><button id="add-quick" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-quick" class="canva-text">Adicionar</span></button>
       </div>
 
+      <div class="card rounded-2xl p-5 mb-6 birthday-panel birthday-panel-top">
+       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+         <h3 class="font-bold flex items-center gap-2"><i data-lucide="cake" style="color:var(--accent)"></i> Aniversariantes do mês</h3>
+         <p class="muted text-sm">Perfis e membros com aniversário neste mês — para aparecer aqui, cadastre a data de nascimento no perfil ou no membro.</p>
+        </div>
+        <span id="birthday-count" class="text-xs px-3 py-1 rounded-full card2">0 aniversariantes</span>
+       </div>
+       <div id="birthday-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+       <p id="birthday-empty" class="muted text-sm hidden">Nenhum aniversariante cadastrado para este mês.</p>
+      </div>
+
+
       <div class="dashboard-photo-grid mb-8">
        <button data-card-view="escalas" class="photo-card photo-card-large" style="--photo:url('assets/cards/card-culto.png')">
         <span class="photo-icon"><i data-lucide="calendar"></i></span>
@@ -164,18 +178,6 @@
         <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
         <div class="photo-content"><p class="photo-kicker">Manutenções</p><h3 id="stat-pend">0</h3><p>Acompanhe serviços, manutenções e solicitações do espaço.</p></div>
        </button>
-      </div>
-
-      <div class="card rounded-2xl p-5 mb-7 birthday-panel">
-       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div>
-         <h3 class="font-bold flex items-center gap-2"><i data-lucide="cake" style="color:var(--accent)"></i> Aniversariantes do mês</h3>
-         <p class="muted text-sm">Perfis e membros com aniversário neste mês.</p>
-        </div>
-        <span id="birthday-count" class="text-xs px-3 py-1 rounded-full card2">0 aniversariantes</span>
-       </div>
-       <div id="birthday-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-       <p id="birthday-empty" class="muted text-sm hidden">Nenhum aniversariante cadastrado para este mês.</p>
       </div>
 
       <div class="flex items-center justify-between mb-3">
@@ -263,7 +265,7 @@
         <h3 class="font-semibold flex items-center gap-2"><i data-lucide="user-cog" style="color:var(--accent)"></i> Meu perfil</h3>
         <div class="flex items-center gap-4">
          <div id="cfg-profile-avatar" class="w-16 h-16 rounded-full overflow-hidden card2 shrink-0"></div>
-         <div class="min-w-0"><p id="cfg-profile-name" class="font-semibold truncate"></p><p id="cfg-profile-role" class="muted text-sm truncate"></p></div>
+         <div class="min-w-0"><p id="cfg-profile-name" class="font-semibold truncate"></p><p id="cfg-profile-role" class="muted text-sm truncate"></p><p id="cfg-profile-birth" class="muted text-xs truncate"></p></div>
         </div>
         <button id="edit-current-profile" class="canva-button w-full rounded-xl py-2.5 card2 font-medium flex items-center justify-center gap-2"><i data-lucide="pencil"></i><span>Editar usuário, foto e senha</span></button>
         <p class="muted text-xs">As áreas Financeiro e Doações exigem que o perfil tenha senha cadastrada.</p>
@@ -322,6 +324,6 @@
    </div>
   </div>
 
-  <script type="module" src="script.js?v=20260704-aniversariantes-v12-cache-sync"></script>
+  <script type="module" src="script.js?v=20260704-aniversariantes-v13-visivel"></script>
  </body>
 </html>

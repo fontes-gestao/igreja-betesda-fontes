@@ -431,6 +431,7 @@ function refreshSettingsUI(){
     $('#cfg-profile-avatar') && ($('#cfg-profile-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
     $('#cfg-profile-name') && ($('#cfg-profile-name').textContent=p.name||'');
     $('#cfg-profile-role') && ($('#cfg-profile-role').textContent=roleLine);
+    $('#cfg-profile-birth') && ($('#cfg-profile-birth').textContent=p.birthDate ? ('Nascimento: '+fmtBirthDate(p.birthDate)) : 'Nascimento não cadastrado');
     $('#topbar-pname') && ($('#topbar-pname').textContent=p.name||'');
     $('#topbar-prole') && ($('#topbar-prole').textContent=roleLine||'Perfil ativo');
     $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
@@ -859,7 +860,24 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-aniversariantes-v12-cache-sync';
+const APP_VERSION = '20260704-aniversariantes-v13-visivel';
+
+(function forceOneTimeCacheRefresh(){
+  try{
+    const key='igreja_app_version_seen';
+    const seen=localStorage.getItem(key);
+    if(seen!==APP_VERSION){
+      localStorage.setItem(key,APP_VERSION);
+      if('caches' in window){
+        caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('betesda-fontes-')).map(k=>caches.delete(k)))).catch(()=>{});
+      }
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations?.().then(regs=>regs.forEach(reg=>reg.update())).catch(()=>{});
+      }
+    }
+  }catch(e){console.warn('Não foi possível limpar cache da versão:', e);}
+})();
+
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
