@@ -216,3 +216,29 @@ html.light .role-pr { color: #2563eb; }
   color: var(--text);
   background: var(--button);
 }
+
+
+/* ============================================================
+   Ajuste iPhone/PWA: evita que a barra superior fique escondida
+   atrás do relógio/notch do iOS e protege a barra inferior.
+   ============================================================ */
+@media (max-width: 767px) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .topbar {
+      padding-top: calc(0.75rem + env(safe-area-inset-top));
+    }
+
+    #profile-screen {
+      padding-top: calc(1rem + env(safe-area-inset-top));
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    main {
+      padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+    }
+
+    .md\:hidden.fixed.bottom-0 {
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+  }
+}

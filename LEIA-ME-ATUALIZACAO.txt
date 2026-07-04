@@ -15,3 +15,9 @@ Após subir no GitHub:
 
 Observação de segurança:
 As regras de teste do Firestore expiram na data configurada no Firebase. Depois que validar o sistema, substitua por regras com autenticação.
+
+
+Atualização v3-ios-safe-area:
+- Corrige a barra superior no iPhone/PWA para não ficar atrás do relógio/notch.
+- Ajusta a barra inferior em celulares com área segura.
+- Atualiza o cache do Service Worker para forçar o navegador a baixar os novos arquivos.

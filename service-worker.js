@@ -7,7 +7,7 @@
    ============================================================ */
 
 // Suba este número a cada deploy para forçar atualização do cache.
-const CACHE_VERSION = 'v2-firebase';
+const CACHE_VERSION = 'v3-ios-safe-area';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 // Arquivos do "app shell" - essenciais para o app abrir offline.
