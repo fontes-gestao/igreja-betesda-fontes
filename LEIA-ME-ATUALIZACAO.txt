@@ -27,3 +27,9 @@ Correção v4-mobile-menu:
 - O menu lateral no smartphone agora fecha automaticamente ao tocar em Início, Escalas, Eventos, Manutenções, Membros ou Configurações.
 - Também fecha ao tocar fora do menu ou apertar Esc.
 - Cache do PWA atualizado para forçar a versão nova.
+
+
+Atualização adicional - Light Mode completo:
+- O tema claro agora também deixa a sidebar/menu lateral e o menu inferior mobile claros.
+- Corrigidas cores de textos, ícones, cards e botões no menu lateral.
+- Service Worker atualizado para v5-light-mode para evitar cache antigo no iPhone/Android.

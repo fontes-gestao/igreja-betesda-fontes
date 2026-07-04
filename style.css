@@ -17,7 +17,7 @@
 
 html.light {
   --bg: #f5f7fa;
-  --sidebar: #0f111a; /* Mantém a sidebar escura conforme a imagem de referência */
+  --sidebar: #ffffff;
   --topbar: #ffffff;
   --card: #ffffff;
   --card-hover: #f9fafb;
@@ -42,7 +42,7 @@ body {
   color: var(--text);
 }
 
-/* Sidebar styling - sempre escura, baseada na imagem */
+/* Sidebar e navegação: no tema escuro ficam escuras; no tema claro ficam claras. */
 .side {
   background: var(--sidebar);
   border-right: 1px solid var(--border);
@@ -53,6 +53,35 @@ body {
 }
 .side-brand-text p {
   color: #f1f3f9;
+}
+
+/* Tema claro completo: aplica claro também no menu lateral e no menu inferior mobile. */
+html.light .side {
+  background: var(--sidebar);
+  border-right-color: var(--border);
+  color: var(--text);
+}
+html.light .side .muted,
+html.light .side .nav-btn {
+  color: var(--text-secondary);
+}
+html.light .side-brand-text p,
+html.light .side-user-text p,
+html.light .side .card2 {
+  color: var(--text);
+}
+html.light .nav-btn:hover {
+  color: var(--text);
+  background: rgba(124, 58, 237, 0.08);
+}
+html.light .nav-btn.active {
+  color: #ffffff !important;
+  background: var(--accent);
+  box-shadow: 0 10px 24px -10px var(--accent);
+}
+html.light .side-user {
+  background: var(--button);
+  border-color: var(--border);
 }
 
 .card {
@@ -260,4 +289,41 @@ html.light .role-pr { color: #2563eb; }
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
     box-shadow: 20px 0 50px rgba(0, 0, 0, 0.45);
   }
+}
+
+
+/* ============================================================
+   Correção Light Mode completo
+   Garante que sidebar, menu mobile e botões herdados fiquem claros
+   quando o tema claro estiver ativo.
+   ============================================================ */
+html.light body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html.light .app-sidebar,
+html.light .md\:hidden.fixed.bottom-0 {
+  background: var(--sidebar) !important;
+  color: var(--text) !important;
+}
+
+html.light .collapse-toggle:hover {
+  background: var(--button);
+  color: var(--text);
+}
+
+html.light .card2,
+html.light .collapse-toggle,
+html.light #bell-btn,
+html.light #topbar-theme {
+  background: var(--button);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+html.light #bell-btn:hover,
+html.light #topbar-theme:hover,
+html.light .collapse-toggle:hover {
+  color: var(--accent);
 }

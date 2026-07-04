@@ -7,7 +7,7 @@
    ============================================================ */
 
 // Suba este número a cada deploy para forçar atualização do cache.
-const CACHE_VERSION = 'v4-mobile-menu';
+const CACHE_VERSION = 'v5-light-mode';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 // Arquivos do "app shell" - essenciais para o app abrir offline.
