@@ -3,11 +3,11 @@
    - Cache de app shell (HTML, CSS, JS, ícones, imagens)
    - Funcionamento offline
    - Atualização automática de cache em nova versão
-   - Nunca toca no localStorage (dados do usuário ficam intactos)
+   - Cache do app shell; os dados são sincronizados via Firebase/Firestore
    ============================================================ */
 
 // Suba este número a cada deploy para forçar atualização do cache.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2-firebase';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 // Arquivos do "app shell" - essenciais para o app abrir offline.
@@ -71,8 +71,7 @@ self.addEventListener('activate', (event) => {
    - Navegação (HTML): network-first, cai pro cache se offline (garante conteúdo mais novo quando online).
    - Estáticos do app shell (css/js/ícones/imagens locais): cache-first (mais rápido).
    - CDNs externas (tailwind/fonts/lucide): stale-while-revalidate (usa cache e atualiza em segundo plano).
-   IMPORTANTE: nunca intercepta chamadas que não sejam GET (o app usa apenas localStorage,
-   então isso não afeta o salvamento de dados do usuário).
+   IMPORTANTE: nunca intercepta chamadas que não sejam GET; isso não bloqueia gravações no Firestore.
 ------------------------------------------- */
 self.addEventListener('fetch', (event) => {
   const req = event.request;

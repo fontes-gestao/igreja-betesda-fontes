@@ -1,4 +1,150 @@
-const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem('igreja_'+k))??d}catch(e){return d}},set:(k,v)=>localStorage.setItem('igreja_'+k,JSON.stringify(v))};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+/* ============================================================
+   Firebase / Firestore
+   Projeto: betesda-fontes
+   A aplicação continua usando localStorage como cache offline,
+   mas a fonte compartilhada entre navegadores/dispositivos é o
+   documento sistema/dados no Firestore.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB1jSYfufjI_LOYD3YSQq1dWN4TANeji-4",
+  authDomain: "betesda-fontes.firebaseapp.com",
+  projectId: "betesda-fontes",
+  storageBucket: "betesda-fontes.firebasestorage.app",
+  messagingSenderId: "936563356475",
+  appId: "1:936563356475:web:86061f6da68cc82e77bd1e"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+// Ativa cache offline do Firestore quando o navegador permitir.
+// Em alguns navegadores/abas simultâneas ele pode recusar; nesse caso o app continua funcionando online.
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn('Persistência offline do Firestore não ativada:', err?.code || err);
+});
+
+const cloudDoc = doc(db, 'sistema', 'dados');
+const CLOUD_KEYS = ['profiles', 'members', 'escalas', 'eventos', 'manut', 'settings'];
+let applyingRemoteData = false;
+let cloudLoaded = false;
+let cloudSaveTimer = null;
+let unsubscribeCloud = null;
+
+const LS={
+  get:(k,d)=>{try{return JSON.parse(localStorage.getItem('igreja_'+k))??d}catch(e){return d}},
+  set:(k,v)=>{
+    localStorage.setItem('igreja_'+k,JSON.stringify(v));
+    if(CLOUD_KEYS.includes(k) && !applyingRemoteData) scheduleCloudSave();
+  }
+};
+
+function localHasCloudData(){
+  return CLOUD_KEYS.some(k=>{
+    const v=LS.get(k,null);
+    if(Array.isArray(v)) return v.length>0;
+    if(v && typeof v==='object') return Object.keys(v).length>0;
+    return !!v;
+  });
+}
+
+function collectCloudData(){
+  return {profiles, members, escalas, eventos, manut, settings, updatedAt: serverTimestamp()};
+}
+
+function scheduleCloudSave(){
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(saveCloudData,500);
+}
+
+async function saveCloudData(){
+  if(!cloudLoaded) return;
+  try{
+    await setDoc(cloudDoc, collectCloudData(), {merge:true});
+    console.info('Dados salvos na nuvem.');
+  }catch(e){
+    console.error('Erro ao salvar no Firebase:', e);
+    toast('Erro ao salvar na nuvem');
+  }
+}
+
+function applyCloudData(data){
+  if(!data) return;
+  applyingRemoteData=true;
+  profiles=Array.isArray(data.profiles)?data.profiles:[];
+  members=Array.isArray(data.members)?data.members:[];
+  escalas=Array.isArray(data.escalas)?data.escalas:[];
+  eventos=Array.isArray(data.eventos)?data.eventos:[];
+  manut=Array.isArray(data.manut)?data.manut:[];
+  settings=(data.settings&&typeof data.settings==='object')?data.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
+  CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,settings}[k])));
+  applyingRemoteData=false;
+  refreshAfterCloudUpdate();
+}
+
+function refreshAfterCloudUpdate(){
+  applyTheme();
+  if(activeProfile && !profiles.find(p=>p.id===activeProfile)){
+    activeProfile=null;
+    LS.set('active_profile',null);
+    $('#app')?.classList.add('hidden');
+    $('#profile-screen')?.classList.remove('hidden');
+  }
+  if(!$('#profile-screen')?.classList.contains('hidden')) renderProfiles();
+  if(!$('#app')?.classList.contains('hidden')){
+    refreshSettingsUI();
+    const active=document.querySelector('[data-view].active')?.dataset.view || 'home';
+    switchView(active);
+  }
+}
+
+async function startCloudSync(){
+  if(unsubscribeCloud) return;
+  try{
+    const snap=await getDoc(cloudDoc);
+    if(snap.exists()){
+      applyCloudData(snap.data());
+      console.info('Dados carregados do Firebase.');
+    }else if(localHasCloudData()){
+      cloudLoaded=true;
+      await saveCloudData();
+      console.info('Documento inicial criado no Firebase com os dados locais.');
+    }
+    cloudLoaded=true;
+    unsubscribeCloud=onSnapshot(cloudDoc,(s)=>{
+      cloudLoaded=true;
+      if(s.exists()) applyCloudData(s.data());
+    },(e)=>{
+      console.error('Erro ao sincronizar Firebase:', e);
+      toast('Sem conexão com a nuvem');
+    });
+  }catch(e){
+    // Continua utilizável com localStorage/cache. Quando a internet voltar, tentamos reconectar.
+    cloudLoaded=true;
+    console.error('Erro ao iniciar Firebase:', e);
+    toast('Usando dados locais. Verifique sua conexão.');
+  }
+}
+
+window.addEventListener('online', () => {
+  if(!unsubscribeCloud) startCloudSync();
+});
+
+async function resetCloudData(){
+  const clean={profiles:[],members:[],escalas:[],eventos:[],manut:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},updatedAt:serverTimestamp()};
+  await setDoc(cloudDoc, clean, {merge:true});
+}
+
 const NOW=new Date();
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const $=s=>document.querySelector(s);
@@ -148,7 +294,7 @@ $('#theme-dark').onclick=()=>{settings.theme='dark';LS.set('settings',settings);
 $('#theme-light').onclick=()=>{settings.theme='light';LS.set('settings',settings);applyTheme();updateThemeButtons();toast('Tema Claro aplicado');};
 $('#save-config').onclick=()=>{settings.churchName=$('#cfg-church').value.trim()||'Igreja Betesda Fontes';LS.set('settings',settings);refreshSettingsUI();toast('Configurações salvas');};
 let resetArmed=false;
-$('#reset-data').onclick=e=>{if(!resetArmed){resetArmed=true;e.currentTarget.querySelector('span').textContent='Clique novamente para apagar tudo';setTimeout(()=>{resetArmed=false;e.currentTarget.querySelector('span').textContent='Apagar todos os dados';},3000);return;}['profiles','active_profile','members','escalas','eventos','manut','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));location.reload();};
+$('#reset-data').onclick=async e=>{if(!resetArmed){resetArmed=true;e.currentTarget.querySelector('span').textContent='Clique novamente para apagar tudo';setTimeout(()=>{resetArmed=false;e.currentTarget.querySelector('span').textContent='Apagar todos os dados';},3000);return;}['profiles','active_profile','members','escalas','eventos','manut','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);}location.reload();};
 
 /* DATES */
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
@@ -320,14 +466,19 @@ function openManutModal(m){m=m||{};openModal(m.id?'Editar Manutenção':'Nova Ma
 ],v=>{if(m.id)Object.assign(m,v);else manut.push({id:uid(),...v});LS.set('manut',manut);renderManut();toast('Manutenção salva');});}
 
 /* BOOT */
-renderProfiles();
-if(activeProfile&&profiles.find(p=>p.id===activeProfile)) {
-  openApp();
-} else {
-  $('#profile-screen').classList.remove('hidden');
-  updateThemeButtons();
+async function boot(){
+  // Carrega primeiro a nuvem; se falhar, segue com o cache local para manter o PWA utilizável.
+  await startCloudSync();
+  renderProfiles();
+  if(activeProfile&&profiles.find(p=>p.id===activeProfile)) {
+    openApp();
+  } else {
+    $('#profile-screen').classList.remove('hidden');
+    updateThemeButtons();
+  }
+  icons();
 }
-icons();
+boot();
 
 // Atalhos do PWA (manifest "shortcuts"): ?view=escalas abre direto na tela certa, se já houver perfil ativo.
 (function applyShortcutView(){

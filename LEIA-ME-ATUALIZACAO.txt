@@ -1,0 +1,17 @@
+Betesda Fontes - versão Firebase
+
+O que foi alterado:
+- O script.js agora carrega Firebase/Firestore como módulo.
+- Membros, perfis, escalas, eventos, manutenções e configurações são sincronizados no documento Firestore: sistema/dados.
+- O localStorage permanece como cache local/offline, mas a nuvem passa a compartilhar os dados entre navegadores/dispositivos.
+- O service-worker.js foi atualizado para versão v2-firebase para forçar o navegador a buscar os arquivos novos.
+
+Após subir no GitHub:
+1. Aguarde o Pages publicar.
+2. Abra o site e use Ctrl+Shift+R ou Cmd+Shift+R.
+3. Em um navegador, crie um perfil/evento.
+4. Em outro navegador, abra o mesmo site e aguarde alguns segundos.
+5. No Firebase > Firestore, deve aparecer a coleção sistema e o documento dados.
+
+Observação de segurança:
+As regras de teste do Firestore expiram na data configurada no Firebase. Depois que validar o sistema, substitua por regras com autenticação.
