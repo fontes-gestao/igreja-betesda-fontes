@@ -89,9 +89,11 @@ function applyCloudData(data){
   financeiro=Array.isArray(data.financeiro)?data.financeiro:[];
   doacoes=Array.isArray(data.doacoes)?data.doacoes:[];
   settings=(data.settings&&typeof data.settings==='object')?data.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
+  const adminChanged=ensureAdminProfile(false);
   CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,financeiro,doacoes,settings}[k])));
   applyingRemoteData=false;
   refreshAfterCloudUpdate();
+  if(adminChanged) scheduleCloudSave();
 }
 
 function refreshAfterCloudUpdate(){
@@ -143,7 +145,7 @@ window.addEventListener('online', () => {
 });
 
 async function resetCloudData(){
-  const clean={profiles:[],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},updatedAt:serverTimestamp()};
+  const clean={profiles:[adminProfileTemplate()],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},updatedAt:serverTimestamp()};
   await setDoc(cloudDoc, clean, {merge:true});
 }
 
@@ -185,6 +187,31 @@ function hashPassword(password){
 }
 function currentProfile(){return profiles.find(p=>p.id===activeProfile)||null;}
 function profileHasPassword(p){return !!(p && p.passwordHash);}
+const ADMIN_PROFILE_ID='adm-betesda-fontes';
+const ADMIN_USERNAME='ADM';
+const ADMIN_PASSWORD_HASH=hashPassword('757130');
+function isAdminProfile(p=currentProfile()){
+  return !!(p && p.id===ADMIN_PROFILE_ID && p.name===ADMIN_USERNAME && p.passwordHash===ADMIN_PASSWORD_HASH);
+}
+function adminProfileTemplate(){
+  return {id:ADMIN_PROFILE_ID,name:ADMIN_USERNAME,ministry:'Sistema',role:'Administrador',avatar:getAvatars()[0]||'',passwordHash:ADMIN_PASSWORD_HASH,isAdmin:true};
+}
+function ensureAdminProfile(save=false){
+  let changed=false;
+  let adm=profiles.find(p=>p.id===ADMIN_PROFILE_ID) || profiles.find(p=>(p.name||'').trim().toUpperCase()===ADMIN_USERNAME);
+  if(!adm){profiles.push(adminProfileTemplate());changed=true;}
+  else {
+    if(adm.id!==ADMIN_PROFILE_ID){adm.id=ADMIN_PROFILE_ID;changed=true;}
+    if(adm.name!==ADMIN_USERNAME){adm.name=ADMIN_USERNAME;changed=true;}
+    if(adm.role!=='Administrador'){adm.role='Administrador';changed=true;}
+    if(adm.ministry!=='Sistema'){adm.ministry='Sistema';changed=true;}
+    if(!adm.avatar){adm.avatar=getAvatars()[0]||'';changed=true;}
+    if(adm.passwordHash!==ADMIN_PASSWORD_HASH){adm.passwordHash=ADMIN_PASSWORD_HASH;changed=true;}
+    if(adm.isAdmin!==true){adm.isAdmin=true;changed=true;}
+  }
+  if(save && changed) LS.set('profiles',profiles);
+  return changed;
+}
 function setActiveProfile(id){activeProfile=id;LS.set('active_profile',id);openApp();}
 function requireSensitiveAccess(view){
   if(!['financeiro','doacoes'].includes(view)) return true;
@@ -195,6 +222,7 @@ function requireSensitiveAccess(view){
   setTimeout(()=>openEditProfileModal(),250);
   return false;
 }
+ensureAdminProfile(true);
 
 /* THEME */
 function applyTheme(){
@@ -366,6 +394,8 @@ function refreshSettingsUI(){
     $('#topbar-prole') && ($('#topbar-prole').textContent=roleLine||'Perfil ativo');
     $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
   }
+  const risk=$('#risk-zone');
+  if(risk) risk.classList.toggle('hidden', !isAdminProfile(p));
   updateThemeButtons();
 }
 function updateThemeButtons(){
@@ -389,7 +419,15 @@ $('#theme-light').onclick=()=>{settings.theme='light';LS.set('settings',settings
 $('#save-config').onclick=()=>{settings.churchName=$('#cfg-church').value.trim()||'Igreja Betesda Fontes';LS.set('settings',settings);refreshSettingsUI();toast('Configurações salvas');};
 $('#edit-current-profile').onclick=()=>openEditProfileModal();
 let resetArmed=false;
-$('#reset-data').onclick=async e=>{if(!resetArmed){resetArmed=true;e.currentTarget.querySelector('span').textContent='Clique novamente para apagar tudo';setTimeout(()=>{resetArmed=false;e.currentTarget.querySelector('span').textContent='Apagar todos os dados';},3000);return;}['profiles','active_profile','members','escalas','eventos','manut','financeiro','doacoes','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);}location.reload();};
+$('#reset-data').onclick=async e=>{
+  if(!isAdminProfile()){toast('Ação permitida apenas para o usuário ADM');return;}
+  if(!resetArmed){resetArmed=true;e.currentTarget.querySelector('span').textContent='Clique novamente para apagar tudo';setTimeout(()=>{resetArmed=false;e.currentTarget.querySelector('span').textContent='Apagar todos os dados';},3000);return;}
+  ['active_profile','members','escalas','eventos','manut','financeiro','doacoes','settings','sidebar_collapsed'].forEach(k=>localStorage.removeItem('igreja_'+k));
+  profiles=[adminProfileTemplate()];LS.set('profiles',profiles);
+  try{await resetCloudData();}catch(err){console.error('Erro ao apagar dados na nuvem:',err);}
+  activeProfile=ADMIN_PROFILE_ID;LS.set('active_profile',activeProfile);
+  location.reload();
+};
 
 /* DATES */
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
@@ -612,34 +650,41 @@ function openEditProfileModal(){
   if(!p){toast('Selecione um perfil primeiro');return;}
   let editAvatar=p.avatar || getAvatars()[0] || '';
   $('#modal-title').textContent='Editar usuário';
+  const adm=isAdminProfile(p);
   $('#modal-form').innerHTML=`
     <div class="sm:col-span-2 flex flex-col items-center gap-3">
       <div id="edit-avatar-preview" class="w-24 h-24 rounded-full overflow-hidden card2">${avatarImg(editAvatar,'av-img')}</div>
       <label for="edit-avatar-upload" class="text-sm cursor-pointer muted hover:text-[var(--accent)] flex items-center gap-2"><i data-lucide="upload" style="width:16px;height:16px"></i>Trocar foto</label>
       <input id="edit-avatar-upload" type="file" accept="image/*" class="hidden">
     </div>
-    <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-name">Nome *</label><input id="edit-name" class="w-full rounded-xl px-3 py-2" value="${esc(p.name||'')}"></div>
-    <div><label class="text-sm muted block mb-1" for="edit-ministry">Ministério</label><input id="edit-ministry" class="w-full rounded-xl px-3 py-2" value="${esc(p.ministry||'')}"></div>
-    <div><label class="text-sm muted block mb-1" for="edit-role">Cargo</label><input id="edit-role" class="w-full rounded-xl px-3 py-2" value="${esc(p.role||'')}"></div>
-    <div class="sm:col-span-2"><p class="text-sm font-semibold mt-2">Alterar senha</p><p class="muted text-xs">Deixe em branco se não quiser trocar.</p></div>
-    ${profileHasPassword(p)?'<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-current-password">Senha atual</label><input id="edit-current-password" type="password" class="w-full rounded-xl px-3 py-2"></div>':''}
-    <div><label class="text-sm muted block mb-1" for="edit-new-password">Nova senha</label><input id="edit-new-password" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div>
-    <div><label class="text-sm muted block mb-1" for="edit-new-password-confirm">Confirmar nova senha</label><input id="edit-new-password-confirm" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div>`;
+    ${adm?'<div class="sm:col-span-2 rounded-xl p-3 card2 text-sm"><strong>Usuário administrador fixo:</strong> ADM. A senha padrão é 757130.</div>':''}
+    <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-name">Nome *</label><input id="edit-name" class="w-full rounded-xl px-3 py-2" value="${esc(p.name||'')}" ${adm?'disabled':''}></div>
+    <div><label class="text-sm muted block mb-1" for="edit-ministry">Ministério</label><input id="edit-ministry" class="w-full rounded-xl px-3 py-2" value="${esc(p.ministry||'')}" ${adm?'disabled':''}></div>
+    <div><label class="text-sm muted block mb-1" for="edit-role">Cargo</label><input id="edit-role" class="w-full rounded-xl px-3 py-2" value="${esc(p.role||'')}" ${adm?'disabled':''}></div>
+    ${adm?'':'<div class="sm:col-span-2"><p class="text-sm font-semibold mt-2">Alterar senha</p><p class="muted text-xs">Deixe em branco se não quiser trocar.</p></div>'}
+    ${(!adm && profileHasPassword(p))?'<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-current-password">Senha atual</label><input id="edit-current-password" type="password" class="w-full rounded-xl px-3 py-2"></div>':''}
+    ${adm?'':'<div><label class="text-sm muted block mb-1" for="edit-new-password">Nova senha</label><input id="edit-new-password" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div><div><label class="text-sm muted block mb-1" for="edit-new-password-confirm">Confirmar nova senha</label><input id="edit-new-password-confirm" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div>'}`;
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
   const up=$('#edit-avatar-upload');
   up.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{editAvatar=r.result;$('#edit-avatar-preview').innerHTML=avatarImg(editAvatar,'av-img');};r.readAsDataURL(f);};
   $('#modal-save').onclick=()=>{
-    const name=$('#edit-name').value.trim();
+    const adm=isAdminProfile(p);
+    const name=adm?ADMIN_USERNAME:$('#edit-name').value.trim();
     if(!name){toast('Informe o nome');return;}
-    const newPass=$('#edit-new-password').value;
-    const newPass2=$('#edit-new-password-confirm').value;
-    if(newPass || newPass2){
-      if(profileHasPassword(p) && hashPassword($('#edit-current-password').value)!==p.passwordHash){toast('Senha atual incorreta');return;}
-      if(newPass.length<4){toast('A nova senha precisa ter pelo menos 4 caracteres');return;}
-      if(newPass!==newPass2){toast('As novas senhas não conferem');return;}
-      p.passwordHash=hashPassword(newPass);
+    if(!adm){
+      const newPass=$('#edit-new-password').value;
+      const newPass2=$('#edit-new-password-confirm').value;
+      if(newPass || newPass2){
+        if(profileHasPassword(p) && hashPassword($('#edit-current-password').value)!==p.passwordHash){toast('Senha atual incorreta');return;}
+        if(newPass.length<4){toast('A nova senha precisa ter pelo menos 4 caracteres');return;}
+        if(newPass!==newPass2){toast('As novas senhas não conferem');return;}
+        p.passwordHash=hashPassword(newPass);
+      }
+      p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();
+    } else {
+      p.passwordHash=ADMIN_PASSWORD_HASH;p.ministry='Sistema';p.role='Administrador';p.id=ADMIN_PROFILE_ID;p.isAdmin=true;
     }
-    p.name=name;p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();p.avatar=editAvatar;
+    p.name=name;p.avatar=editAvatar;
     LS.set('profiles',profiles);
     closeModal();
     openApp();
@@ -680,7 +725,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-topbar-logo-v8';
+const APP_VERSION = '20260704-admin-risk-v9';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

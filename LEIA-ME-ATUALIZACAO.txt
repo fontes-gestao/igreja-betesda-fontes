@@ -39,3 +39,11 @@ Atualização 20260704-topbar-logo-v8:
 - Foto/nome do usuário adicionados no canto superior direito da barra superior.
 - Botão Dark/Light mantido ao lado dos alertas e antes do usuário.
 - Cache do PWA atualizado para forçar a nova versão.
+
+
+Atualização: zona de risco restrita
+- Criado perfil administrador fixo: ADM
+- Senha do administrador: 757130
+- A área "Zona de risco" fica oculta para todos os outros perfis.
+- O botão "Apagar todos os dados" só executa se o perfil ativo for ADM.
+- Ao apagar os dados, o perfil ADM é preservado para você conseguir administrar o sistema novamente.
