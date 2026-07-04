@@ -198,7 +198,37 @@ function applySidebarState(){
   icons();
 }
 $('#collapse-toggle').onclick=()=>{sidebarCollapsed=!sidebarCollapsed;LS.set('sidebar_collapsed',sidebarCollapsed);applySidebarState();};
-$('#mobile-menu').onclick=()=>{const a=document.querySelector('.app-sidebar');a.classList.toggle('hidden');a.classList.toggle('flex');a.classList.toggle('fixed');a.classList.toggle('z-40');a.classList.toggle('inset-y-0');a.classList.toggle('left-0');};
+
+function isMobileView(){return window.matchMedia('(max-width: 767px)').matches;}
+function openMobileSidebar(){
+  const a=document.querySelector('.app-sidebar');
+  if(!a)return;
+  a.classList.remove('hidden');
+  a.classList.add('flex','fixed','z-50','inset-y-0','left-0');
+  document.body.classList.add('mobile-sidebar-open');
+}
+function closeMobileSidebar(){
+  const a=document.querySelector('.app-sidebar');
+  if(!a)return;
+  a.classList.add('hidden');
+  a.classList.remove('flex','fixed','z-50','z-40','inset-y-0','left-0');
+  document.body.classList.remove('mobile-sidebar-open');
+}
+function toggleMobileSidebar(){
+  const a=document.querySelector('.app-sidebar');
+  if(!a)return;
+  if(a.classList.contains('hidden')) openMobileSidebar(); else closeMobileSidebar();
+}
+$('#mobile-menu').onclick=(e)=>{e.stopPropagation();toggleMobileSidebar();};
+document.addEventListener('click',(e)=>{
+  if(!isMobileView())return;
+  const a=document.querySelector('.app-sidebar');
+  if(!a || a.classList.contains('hidden'))return;
+  if(a.contains(e.target) || $('#mobile-menu')?.contains(e.target))return;
+  closeMobileSidebar();
+});
+document.addEventListener('keydown',(e)=>{if(e.key==='Escape')closeMobileSidebar();});
+window.addEventListener('resize',()=>{if(!isMobileView())closeMobileSidebar();});
 
 /* PROFILES */
 function renderProfiles(){
@@ -256,7 +286,7 @@ function switchView(v){
   if(v==='home')renderHome();if(v==='membros')renderMembers();if(v==='escalas')renderEscalas();if(v==='eventos')renderEventos();if(v==='manut')renderManut();
   icons();
 }
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(isMobileView())closeMobileSidebar();});
 $('#add-quick').onclick=()=>{switchView('escalas');openEscalaModal();};
 $('#bell-btn').onclick=()=>toast('Sem novas notificações');
 $('#topbar-theme').onclick=()=>{

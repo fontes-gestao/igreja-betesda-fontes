@@ -242,3 +242,22 @@ html.light .role-pr { color: #2563eb; }
     }
   }
 }
+
+
+/* ============================================================
+   Ajuste menu mobile: fecha ao tocar em qualquer item e evita
+   rolagem da página por trás do menu aberto.
+   ============================================================ */
+@media (max-width: 767px) {
+  body.mobile-sidebar-open {
+    overflow: hidden;
+  }
+
+  .app-sidebar.fixed {
+    width: min(85vw, 22rem);
+    max-width: 22rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.45);
+  }
+}

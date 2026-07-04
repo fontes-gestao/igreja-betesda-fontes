@@ -21,3 +21,9 @@ Atualização v3-ios-safe-area:
 - Corrige a barra superior no iPhone/PWA para não ficar atrás do relógio/notch.
 - Ajusta a barra inferior em celulares com área segura.
 - Atualiza o cache do Service Worker para forçar o navegador a baixar os novos arquivos.
+
+
+Correção v4-mobile-menu:
+- O menu lateral no smartphone agora fecha automaticamente ao tocar em Início, Escalas, Eventos, Manutenções, Membros ou Configurações.
+- Também fecha ao tocar fora do menu ou apertar Esc.
+- Cache do PWA atualizado para forçar a versão nova.
