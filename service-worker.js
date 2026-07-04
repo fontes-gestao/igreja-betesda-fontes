@@ -1,20 +1,15 @@
 /* ============================================================
    Service Worker - Betesda Fontes (PWA)
-   Versão com atualização automática e menos cache preso.
-   - HTML, JS, CSS e manifest: network-first com cache reload.
-   - Imagens e ícones: cache-first.
-   - Ao publicar uma versão nova no GitHub, o app atualiza sem precisar limpar cache.
+   Versão 20260704-aniversariantes-v12-cache-sync
+   - Corrige cache preso em iPhone/Android/Chrome.
+   - HTML, JS, CSS e manifest sempre tentam buscar a versão nova primeiro.
+   - Imagens e ícones continuam em cache para o PWA funcionar melhor offline.
    ============================================================ */
 
-const CACHE_VERSION = '20260704-aniversariantes-v11';
+const CACHE_VERSION = '20260704-aniversariantes-v12-cache-sync';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
-const APP_SHELL = [
-  './',
-  './index.html',
-  './style.css?v=20260704-aniversariantes-v11',
-  './script.js?v=20260704-aniversariantes-v11',
-  './manifest.json?v=20260704-aniversariantes-v11',
+const STATIC_ASSETS = [
   './assets/church-logo.png',
   './assets/cards/card-culto.png',
   './assets/cards/card-evento.png',
@@ -30,6 +25,7 @@ const APP_SHELL = [
   './assets/avatar-7.png',
   './assets/avatar-8.png',
   './assets/avatar-9.png',
+  './icons/favicon.png',
   './icons/icon-72.png',
   './icons/icon-96.png',
   './icons/icon-128.png',
@@ -46,22 +42,22 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key.startsWith('betesda-fontes-') && key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-      .then(() => notifyClientsOfUpdate())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys
+      .filter((key) => key.startsWith('betesda-fontes-') && key !== CACHE_NAME)
+      .map((key) => caches.delete(key))
+    );
+    await self.clients.claim();
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) client.postMessage({ type: 'APP_UPDATED', version: CACHE_VERSION });
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
@@ -79,32 +75,31 @@ self.addEventListener('fetch', (event) => {
 
   if (isSameOrigin) {
     const path = url.pathname.toLowerCase();
-    const isCriticalFile = path.endsWith('/index.html') || path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.json') || path.endsWith('.webmanifest');
-
-    if (isCriticalFile) {
+    const critical = path.endsWith('/index.html') || path.endsWith('.html') || path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.json') || path.endsWith('.webmanifest');
+    if (critical) {
       event.respondWith(networkFirst(req));
       return;
     }
-
     event.respondWith(cacheFirst(req));
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(req));
+  // Bibliotecas externas: tenta rede primeiro; se falhar, usa cache.
+  event.respondWith(networkFirst(req));
 });
 
 async function networkFirst(req, fallbackUrl) {
+  const cache = await caches.open(CACHE_NAME);
   try {
-    const fresh = await fetch(req, { cache: 'reload' });
-    if (fresh && fresh.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(req, fresh.clone());
-    }
+    const fresh = await fetch(req, { cache: 'no-store' });
+    if (fresh && fresh.ok) cache.put(req, fresh.clone());
     return fresh;
   } catch (err) {
     const cached = await caches.match(req);
     if (cached) return cached;
-    if (fallbackUrl) return caches.match(fallbackUrl) || caches.match('./index.html');
+    if (fallbackUrl) {
+      return caches.match(fallbackUrl) || caches.match('./index.html') || new Response('Offline', { status: 503 });
+    }
     return Response.error();
   }
 }
@@ -124,29 +119,8 @@ async function cacheFirst(req) {
   }
 }
 
-async function staleWhileRevalidate(req) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(req);
-  const networkPromise = fetch(req)
-    .then((fresh) => {
-      if (fresh && fresh.ok) cache.put(req, fresh.clone());
-      return fresh;
-    })
-    .catch(() => cached);
-  return cached || networkPromise;
-}
-
-async function notifyClientsOfUpdate() {
-  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-  for (const client of clients) {
-    client.postMessage({ type: 'APP_UPDATED', version: CACHE_VERSION });
-  }
-}
-
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('push', () => {});

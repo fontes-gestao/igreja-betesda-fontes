@@ -1,17 +1,19 @@
-Atualização: Aniversariantes do mês
+Atualização: Aniversariantes + correção de cache e sincronização
 
-Versão: 20260704-aniversariantes-v11
+Versão: 20260704-aniversariantes-v12-cache-sync
 
-O que foi incluído:
+Incluído/validado:
 - Campo Data de nascimento no cadastro de perfil/usuário.
 - Campo Data de nascimento no cadastro de membros.
 - Quadro "Aniversariantes do mês" na tela inicial.
-- A lista mostra perfis e membros que fazem aniversário no mês atual, ordenados pelo dia.
-- Cards de membros agora também exibem aniversário quando cadastrado.
-- Cache/PWA atualizado para forçar a nova versão no GitHub Pages.
+- Correção para o PWA buscar arquivos novos sem precisar limpar o histórico do navegador nas próximas atualizações.
+- Proteção contra snapshot antigo do Firestore sobrescrever perfil recém-criado.
 
-Como publicar:
+Subir no GitHub:
 1. Extraia este ZIP.
 2. Entre na pasta pwa.
-3. Envie tudo para o GitHub usando Add file > Upload files.
-4. Commit sugerido: Aniversariantes do mês.
+3. Envie tudo em Add file > Upload files.
+4. Commit sugerido: Aniversariantes + correção de cache.
+
+Observação:
+Na primeira abertura após publicar, pode ser necessário fechar e abrir o app/site uma vez, porque o navegador ainda pode estar com o service worker antigo. Depois desta versão, as próximas atualizações devem carregar bem melhor.

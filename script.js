@@ -41,11 +41,33 @@ let cloudLoaded = false;
 let cloudSaveTimer = null;
 let unsubscribeCloud = null;
 
+// Controle de versão local para evitar que um snapshot antigo da nuvem
+// apague dados recém-criados neste navegador antes do Firestore terminar de salvar.
+const LOCAL_UPDATE_KEY = 'igreja_cloud_updated_ms';
+let lastLocalWrite = Number(localStorage.getItem(LOCAL_UPDATE_KEY) || '0') || 0;
+function currentLocalUpdatedAt(){
+  return Number(localStorage.getItem(LOCAL_UPDATE_KEY) || lastLocalWrite || '0') || 0;
+}
+function markLocalDataChanged(){
+  lastLocalWrite = Date.now();
+  localStorage.setItem(LOCAL_UPDATE_KEY, String(lastLocalWrite));
+}
+function remoteClientUpdatedAt(data){
+  return Number(data?.clientUpdatedAt || 0) || 0;
+}
+function isFreshLocalChange(){
+  const t=currentLocalUpdatedAt();
+  return !!t && (Date.now()-t) < 120000; // protege alterações feitas nos últimos 2 minutos
+}
+
 const LS={
   get:(k,d)=>{try{return JSON.parse(localStorage.getItem('igreja_'+k))??d}catch(e){return d}},
   set:(k,v)=>{
     localStorage.setItem('igreja_'+k,JSON.stringify(v));
-    if(CLOUD_KEYS.includes(k) && !applyingRemoteData) scheduleCloudSave();
+    if(CLOUD_KEYS.includes(k) && !applyingRemoteData) {
+      markLocalDataChanged();
+      scheduleCloudSave();
+    }
   }
 };
 
@@ -59,7 +81,11 @@ function localHasCloudData(){
 }
 
 function collectCloudData(){
-  return {profiles, members, escalas, eventos, manut, financeiro, doacoes, settings, updatedAt: serverTimestamp()};
+  if(!lastLocalWrite){
+    lastLocalWrite = Date.now();
+    localStorage.setItem(LOCAL_UPDATE_KEY, String(lastLocalWrite));
+  }
+  return {profiles, members, escalas, eventos, manut, financeiro, doacoes, settings, clientUpdatedAt:lastLocalWrite, updatedAt: serverTimestamp()};
 }
 
 function scheduleCloudSave(){
@@ -80,6 +106,16 @@ async function saveCloudData(){
 
 function applyCloudData(data){
   if(!data) return;
+  const remoteTs = remoteClientUpdatedAt(data);
+  const localTs = currentLocalUpdatedAt();
+  // Se o usuário acabou de criar/editar algo localmente, não deixa um snapshot antigo
+  // da nuvem sobrescrever a tela. Em vez disso, reenviamos a versão local.
+  if(localHasCloudData() && isFreshLocalChange() && localTs > (remoteTs + 1000)){
+    console.warn('Snapshot antigo ignorado; mantendo alteração local mais recente.');
+    cloudLoaded = true;
+    scheduleCloudSave();
+    return;
+  }
   applyingRemoteData=true;
   profiles=Array.isArray(data.profiles)?data.profiles:[];
   members=Array.isArray(data.members)?data.members:[];
@@ -91,6 +127,10 @@ function applyCloudData(data){
   settings=(data.settings&&typeof data.settings==='object')?data.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
   const adminChanged=ensureAdminProfile(false);
   CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,financeiro,doacoes,settings}[k])));
+  if(remoteTs){
+    lastLocalWrite = remoteTs;
+    localStorage.setItem(LOCAL_UPDATE_KEY, String(remoteTs));
+  }
   applyingRemoteData=false;
   refreshAfterCloudUpdate();
   if(adminChanged) scheduleCloudSave();
@@ -116,11 +156,11 @@ async function startCloudSync(){
   if(unsubscribeCloud) return;
   try{
     const snap=await getDoc(cloudDoc);
+    cloudLoaded=true;
     if(snap.exists()){
       applyCloudData(snap.data());
       console.info('Dados carregados do Firebase.');
     }else if(localHasCloudData()){
-      cloudLoaded=true;
       await saveCloudData();
       console.info('Documento inicial criado no Firebase com os dados locais.');
     }
@@ -145,7 +185,8 @@ window.addEventListener('online', () => {
 });
 
 async function resetCloudData(){
-  const clean={profiles:[adminProfileTemplate()],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},updatedAt:serverTimestamp()};
+  markLocalDataChanged();
+  const clean={profiles:[adminProfileTemplate()],members:[],escalas:[],eventos:[],manut:[],financeiro:[],doacoes:[],settings:{churchName:'Igreja Betesda Fontes',theme:'dark'},clientUpdatedAt:lastLocalWrite,updatedAt:serverTimestamp()};
   await setDoc(cloudDoc, clean, {merge:true});
 }
 
@@ -333,7 +374,7 @@ $('#profile-form').onsubmit=e=>{
   if(pass.length<4){toast('A senha precisa ter pelo menos 4 caracteres');return;}
   if(pass!==pass2){toast('As senhas não conferem');return;}
   const p={id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)};
-  profiles.push(p);LS.set('profiles',profiles);activeProfile=p.id;LS.set('active_profile',p.id);$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');openApp();
+  profiles.push(p);LS.set('profiles',profiles);activeProfile=p.id;LS.set('active_profile',p.id);$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');openApp();saveCloudData();
 };
 $('#switch-profile').onclick=()=>{activeProfile=null;LS.set('active_profile',null);$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
 $('#edit-profile').onclick=()=>openEditProfileModal();
@@ -818,7 +859,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-aniversariantes-v11';
+const APP_VERSION = '20260704-aniversariantes-v12-cache-sync';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
