@@ -194,7 +194,7 @@ function isAdminProfile(p=currentProfile()){
   return !!(p && p.id===ADMIN_PROFILE_ID && p.name===ADMIN_USERNAME && p.passwordHash===ADMIN_PASSWORD_HASH);
 }
 function adminProfileTemplate(){
-  return {id:ADMIN_PROFILE_ID,name:ADMIN_USERNAME,ministry:'Sistema',role:'Administrador',avatar:getAvatars()[0]||'',passwordHash:ADMIN_PASSWORD_HASH,isAdmin:true};
+  return {id:ADMIN_PROFILE_ID,name:ADMIN_USERNAME,ministry:'Sistema',role:'Administrador',birthDate:'',avatar:getAvatars()[0]||'',passwordHash:ADMIN_PASSWORD_HASH,isAdmin:true};
 }
 function ensureAdminProfile(save=false){
   let changed=false;
@@ -332,7 +332,7 @@ $('#profile-form').onsubmit=e=>{
   const pass2=$('#pf-password-confirm').value;
   if(pass.length<4){toast('A senha precisa ter pelo menos 4 caracteres');return;}
   if(pass!==pass2){toast('As senhas não conferem');return;}
-  const p={id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)};
+  const p={id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)};
   profiles.push(p);LS.set('profiles',profiles);activeProfile=p.id;LS.set('active_profile',p.id);$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');openApp();
 };
 $('#switch-profile').onclick=()=>{activeProfile=null;LS.set('active_profile',null);$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
@@ -472,6 +472,27 @@ function openAdminResetModal(){
 /* DATES */
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
 function parse(d){return d?new Date(d+'T00:00:00'):null;}
+function fmtBirthDate(d){
+  if(!d)return '';
+  const parts=String(d).split('-');
+  if(parts.length<3)return '';
+  return `${parts[2]}/${parts[1]}`;
+}
+function birthDayNumber(d){
+  const parts=String(d||'').split('-');
+  return parts.length>=3 ? Number(parts[2])||0 : 0;
+}
+function isBirthdayThisMonth(d){
+  const parts=String(d||'').split('-');
+  if(parts.length<3)return false;
+  return Number(parts[1]) === (NOW.getMonth()+1);
+}
+function getMonthlyBirthdays(){
+  const people=[];
+  profiles.filter(p=>p.id!==ADMIN_PROFILE_ID && p.birthDate).forEach(p=>people.push({kind:'Perfil',name:p.name,role:p.role||p.ministry||'',avatar:p.avatar,birthDate:p.birthDate}));
+  members.filter(m=>m.birthDate).forEach(m=>people.push({kind:'Membro',name:m.name,role:m.role||m.ministry||'',avatar:m.avatar,birthDate:m.birthDate}));
+  return people.filter(p=>isBirthdayThisMonth(p.birthDate)).sort((a,b)=>birthDayNumber(a.birthDate)-birthDayNumber(b.birthDate)||String(a.name||'').localeCompare(String(b.name||'')));
+}
 
 /* HOME */
 function statusChip(s){const map={'Confirmado':'#4fd18f','Pendente':'#ffb15c','Concluído':'#5bb8ff'};const c=map[s]||'var(--accent)';return `<span class="text-xs px-2 py-0.5 rounded-full font-medium" style="color:${c};background:${c}22">${esc(s)}</span>`;}
@@ -503,8 +524,28 @@ function renderHome(){
   const inWk=escalas.filter(e=>{const d=parse(e.date);return d>=new Date(NOW.toDateString())&&d<=weekEnd;});
   if(!inWk.length)wk.innerHTML='<p class="muted text-sm">Nenhuma escala esta semana.</p>';
   inWk.forEach(e=>{const d=document.createElement('div');d.className='card2 rounded-xl p-3 text-sm flex flex-wrap items-center justify-between gap-2';d.innerHTML=`<div class="flex items-center gap-2 min-w-0"><i data-lucide="calendar-check" style="width:16px;height:16px;color:var(--accent)"></i><span class="font-medium">${fmtDate(e.date)} · ${esc(e.time||'')}</span></div><span class="muted text-xs truncate">${esc(e.preacher||'—')}</span>${statusChip('Confirmado')}`;wk.appendChild(d);});
+
+  renderBirthdaysPanel();
   icons();
 }
+
+function renderBirthdaysPanel(){
+  const list=getMonthlyBirthdays();
+  const box=$('#birthday-list');
+  const empty=$('#birthday-empty');
+  const count=$('#birthday-count');
+  if(!box || !empty || !count)return;
+  box.innerHTML='';
+  count.textContent=list.length===1?'1 aniversariante':`${list.length} aniversariantes`;
+  empty.classList.toggle('hidden', list.length>0);
+  list.forEach(p=>{
+    const item=document.createElement('div');
+    item.className='birthday-item card2 rounded-xl p-3 flex items-center gap-3';
+    item.innerHTML=`<div class="birthday-date accent-grad text-white rounded-xl shrink-0"><span>${fmtBirthDate(p.birthDate).slice(0,2)}</span><small>${fmtBirthDate(p.birthDate).slice(3)}</small></div><div class="w-10 h-10 rounded-full overflow-hidden card2 shrink-0">${avatarImg(p.avatar,'av-img')}</div><div class="min-w-0 flex-1"><p class="font-semibold truncate">${esc(p.name)}</p><p class="muted text-xs truncate">${esc(p.kind)}${p.role?' · '+esc(p.role):''}</p></div>`;
+    box.appendChild(item);
+  });
+}
+
 
 /* MEMBERS */
 function renderMembers(){
@@ -517,7 +558,7 @@ function renderMembers(){
       <div class="w-11 h-11 rounded-full overflow-hidden card2 shrink-0">${avatarImg(m.avatar,'av-img')}</div>
       <div class="min-w-0 flex-1"><p class="font-semibold truncate">${esc(m.name)}</p><p class="text-xs muted">${esc(m.role||'')} · ${esc(m.ministry||'')}</p></div>
       <div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div>
-      <div class="mt-3 space-y-1 text-sm muted">${m.phone?`<p class="flex items-center gap-2"><i data-lucide="phone" style="width:14px;height:14px"></i>${esc(m.phone)}</p>`:''}${m.email?`<p class="flex items-center gap-2"><i data-lucide="mail" style="width:14px;height:14px"></i>${esc(m.email)}</p>`:''}${m.notes?`<p class="text-xs mt-1">${esc(m.notes)}</p>`:''}</div>`;
+      <div class="mt-3 space-y-1 text-sm muted">${m.phone?`<p class="flex items-center gap-2"><i data-lucide="phone" style="width:14px;height:14px"></i>${esc(m.phone)}</p>`:''}${m.email?`<p class="flex items-center gap-2"><i data-lucide="mail" style="width:14px;height:14px"></i>${esc(m.email)}</p>`:''}${m.birthDate?`<p class="flex items-center gap-2"><i data-lucide="cake" style="width:14px;height:14px"></i>Aniversário: ${fmtBirthDate(m.birthDate)}</p>`:''}${m.notes?`<p class="text-xs mt-1">${esc(m.notes)}</p>`:''}</div>`;
     d.querySelector('.ed').onclick=()=>openMemberModal(m);
     d.querySelector('.dl').onclick=e=>confirmDelete(e.currentTarget,()=>{members=members.filter(x=>x.id!==m.id);LS.set('members',members);renderMembers();toast('Membro excluído');});
     c.appendChild(d);
@@ -666,7 +707,8 @@ $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 
 function openMemberModal(m){m=m||{};openModal(m.id?'Editar Membro':'Novo Membro',[
   {k:'name',l:'Nome *',v:m.name,wide:true},{k:'phone',l:'Telefone',v:m.phone},{k:'email',l:'E-mail',v:m.email,type:'email'},
-  {k:'ministry',l:'Ministério',v:m.ministry},{k:'role',l:'Cargo',v:m.role},{k:'notes',l:'Observações',v:m.notes,type:'textarea',wide:true}
+  {k:'ministry',l:'Ministério',v:m.ministry},{k:'role',l:'Cargo',v:m.role},{k:'birthDate',l:'Data de nascimento',v:m.birthDate,type:'date'},
+  {k:'notes',l:'Observações',v:m.notes,type:'textarea',wide:true}
 ],v=>{if(m.id)Object.assign(m,v);else {
   const avs = getAvatars();
   members.push({id:uid(),avatar:avs[Math.floor(Math.random()*avs.length)] || '',...v});
@@ -711,6 +753,7 @@ function openEditProfileModal(){
     <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-name">Nome *</label><input id="edit-name" class="w-full rounded-xl px-3 py-2" value="${esc(p.name||'')}" ${adm?'disabled':''}></div>
     <div><label class="text-sm muted block mb-1" for="edit-ministry">Ministério</label><input id="edit-ministry" class="w-full rounded-xl px-3 py-2" value="${esc(p.ministry||'')}" ${adm?'disabled':''}></div>
     <div><label class="text-sm muted block mb-1" for="edit-role">Cargo</label><input id="edit-role" class="w-full rounded-xl px-3 py-2" value="${esc(p.role||'')}" ${adm?'disabled':''}></div>
+    <div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-birth">Data de nascimento</label><input id="edit-birth" type="date" class="w-full rounded-xl px-3 py-2" value="${esc(p.birthDate||'')}" ${adm?'disabled':''}></div>
     ${adm?'':'<div class="sm:col-span-2"><p class="text-sm font-semibold mt-2">Alterar senha</p><p class="muted text-xs">Deixe em branco se não quiser trocar.</p></div>'}
     ${(!adm && profileHasPassword(p))?'<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="edit-current-password">Senha atual</label><input id="edit-current-password" type="password" class="w-full rounded-xl px-3 py-2"></div>':''}
     ${adm?'':'<div><label class="text-sm muted block mb-1" for="edit-new-password">Nova senha</label><input id="edit-new-password" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div><div><label class="text-sm muted block mb-1" for="edit-new-password-confirm">Confirmar nova senha</label><input id="edit-new-password-confirm" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div>'}`;
@@ -730,7 +773,7 @@ function openEditProfileModal(){
         if(newPass!==newPass2){toast('As novas senhas não conferem');return;}
         p.passwordHash=hashPassword(newPass);
       }
-      p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();
+      p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();p.birthDate=$('#edit-birth').value;
     } else {
       p.passwordHash=ADMIN_PASSWORD_HASH;p.ministry='Sistema';p.role='Administrador';p.id=ADMIN_PROFILE_ID;p.isAdmin=true;
     }
@@ -775,7 +818,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-admin-risk-v10-lock';
+const APP_VERSION = '20260704-aniversariantes-v11';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

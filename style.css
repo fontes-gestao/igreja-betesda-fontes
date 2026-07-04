@@ -478,3 +478,34 @@ html.light .collapse-toggle:hover {
   .photo-content h3 { font-size: 1.45rem; }
   .photo-content { padding-right: 2.8rem; }
 }
+
+
+/* ============================================================
+   Aniversariantes do mês
+   ============================================================ */
+.birthday-panel {
+  overflow: hidden;
+}
+.birthday-item {
+  min-height: 76px;
+}
+.birthday-date {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 10px 22px -12px var(--accent);
+}
+.birthday-date span {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.birthday-date small {
+  font-size: .7rem;
+  opacity: .9;
+  text-transform: uppercase;
+  margin-top: .15rem;
+}

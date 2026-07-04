@@ -1,57 +1,17 @@
-Atualização entregue nesta versão
+Atualização: Aniversariantes do mês
 
-1. Dashboard com cards visuais em imagem
-- A tela inicial foi redesenhada com cards grandes para Próximo Culto, Próximo Evento, Membros, Escalas e Manutenções.
-- As imagens foram adicionadas localmente em assets/cards/ para funcionar no GitHub Pages e no PWA.
+Versão: 20260704-aniversariantes-v11
 
-2. Dark Mode / Light Mode mantido
-- O botão de alternar tema continua no canto superior.
-- O tema claro foi mantido de forma completa, incluindo menu lateral e barra inferior no celular.
+O que foi incluído:
+- Campo Data de nascimento no cadastro de perfil/usuário.
+- Campo Data de nascimento no cadastro de membros.
+- Quadro "Aniversariantes do mês" na tela inicial.
+- A lista mostra perfis e membros que fazem aniversário no mês atual, ordenados pelo dia.
+- Cards de membros agora também exibem aniversário quando cadastrado.
+- Cache/PWA atualizado para forçar a nova versão no GitHub Pages.
 
-3. Financeiro e Doações
-- Foram adicionadas as telas Financeiro e Doações.
-- Os dados também sincronizam pelo Firebase/Firestore.
-- Essas telas exigem que o perfil tenha senha cadastrada.
-
-4. Usuário com senha
-- Ao criar um novo perfil, agora é obrigatório cadastrar uma senha.
-- Perfis antigos sem senha continuam entrando, mas precisam definir senha para acessar Financeiro e Doações.
-
-5. Editar usuário
-- Foi criado botão de edição do usuário no rodapé do menu lateral.
-- Também existe o botão em Configurações > Meu perfil.
-- É possível alterar nome, ministério, cargo, foto e senha.
-
-Observação de segurança
-- A senha implementada protege o uso dentro do aplicativo, mas como o app roda no navegador e o Firestore está em modo de teste, isso não substitui regras de segurança definitivas do Firebase.
-- Antes de usar dados financeiros reais, configure regras mais seguras no Firebase.
-
-
-Atualização 20260704-cachefix-v7
-- Corrigido problema de cache/PWA que fazia o navegador continuar mostrando versões antigas.
-- index.html agora chama style.css, script.js e manifest.json com versão na URL.
-- service-worker.js agora usa network-first para HTML/CSS/JS/JSON e cache-first só para imagens/ícones.
-- O app tenta aplicar novas versões automaticamente sem exigir limpeza manual de cache.
-
-
-Atualização 20260704-topbar-logo-v8:
-- Logo da Betesda ajustado para não cortar dentro da caixa.
-- Foto/nome do usuário adicionados no canto superior direito da barra superior.
-- Botão Dark/Light mantido ao lado dos alertas e antes do usuário.
-- Cache do PWA atualizado para forçar a nova versão.
-
-
-Atualização: zona de risco restrita
-- Criado perfil administrador fixo: ADM
-- Senha do administrador: 757130
-- A área "Zona de risco" fica oculta para todos os outros perfis.
-- O botão "Apagar todos os dados" só executa se o perfil ativo for ADM.
-- Ao apagar os dados, o perfil ADM é preservado para você conseguir administrar o sistema novamente.
-
-
-Atualização v10-lock:
-- Zona de risco agora aparece com cadeado para todos.
-- Ao clicar em Apagar todos os dados, abre popup: digite o usuário e senha para essa ação.
-- A ação só executa com usuário ADM e senha 757130, e ainda exige marcar a confirmação.
-- O usuário ADM é preservado após apagar os dados.
-- Cache/PWA atualizado para forçar nova versão.
+Como publicar:
+1. Extraia este ZIP.
+2. Entre na pasta pwa.
+3. Envie tudo para o GitHub usando Add file > Upload files.
+4. Commit sugerido: Aniversariantes do mês.

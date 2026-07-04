@@ -6,9 +6,9 @@
   <title>Igreja Betesda Fontes - Sistema de Gestão</title>
 
   <!-- PWA: manifest e cor de tema (sincronizada com dark/light no script.js) -->
-  <link rel="manifest" href="manifest.json?v=20260704-topbar-logo-v8">
+  <link rel="manifest" href="manifest.json?v=20260704-aniversariantes-v11">
   <meta name="theme-color" id="meta-theme-color" content="#0A0B13">
-  <meta name="app-version" content="20260704-topbar-logo-v8">
+  <meta name="app-version" content="20260704-aniversariantes-v11">
 
   <!-- PWA: iOS (Safari não lê manifest.json da mesma forma que Android) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +25,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260704-admin-risk-v10-lock">
+  <link rel="stylesheet" href="style.css?v=20260704-aniversariantes-v11">
  </head>
  <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
   <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
@@ -58,8 +58,11 @@
       <div>
        <label for="pf-min" data-template-id="lbl-ministry" class="canva-text text-sm muted block mb-1">Ministério</label><input id="pf-min" class="w-full rounded-xl px-3 py-2">
       </div>
-      <div class="sm:col-span-2">
+      <div>
        <label for="pf-role" data-template-id="lbl-role" class="canva-text text-sm muted block mb-1">Cargo</label><input id="pf-role" class="w-full rounded-xl px-3 py-2">
+      </div>
+      <div>
+       <label for="pf-birth" class="canva-text text-sm muted block mb-1">Data de nascimento</label><input id="pf-birth" type="date" class="w-full rounded-xl px-3 py-2">
       </div>
       <div>
        <label for="pf-password" class="canva-text text-sm muted block mb-1">Senha do perfil</label><input id="pf-password" type="password" minlength="4" required class="w-full rounded-xl px-3 py-2" placeholder="mínimo 4 caracteres">
@@ -158,6 +161,18 @@
         <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
         <div class="photo-content"><p class="photo-kicker">Manutenções</p><h3 id="stat-pend">0</h3><p>Acompanhe serviços, manutenções e solicitações do espaço.</p></div>
        </button>
+      </div>
+
+      <div class="card rounded-2xl p-5 mb-7 birthday-panel">
+       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+         <h3 class="font-bold flex items-center gap-2"><i data-lucide="cake" style="color:var(--accent)"></i> Aniversariantes do mês</h3>
+         <p class="muted text-sm">Perfis e membros com aniversário neste mês.</p>
+        </div>
+        <span id="birthday-count" class="text-xs px-3 py-1 rounded-full card2">0 aniversariantes</span>
+       </div>
+       <div id="birthday-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+       <p id="birthday-empty" class="muted text-sm hidden">Nenhum aniversariante cadastrado para este mês.</p>
       </div>
 
       <div class="flex items-center justify-between mb-3">
@@ -304,6 +319,6 @@
    </div>
   </div>
 
-  <script type="module" src="script.js?v=20260704-admin-risk-v10-lock"></script>
+  <script type="module" src="script.js?v=20260704-aniversariantes-v11"></script>
  </body>
 </html>
