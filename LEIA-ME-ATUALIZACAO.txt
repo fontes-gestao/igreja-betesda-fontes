@@ -1,35 +1,27 @@
-Betesda Fontes - versão Firebase
+Atualização entregue nesta versão
 
-O que foi alterado:
-- O script.js agora carrega Firebase/Firestore como módulo.
-- Membros, perfis, escalas, eventos, manutenções e configurações são sincronizados no documento Firestore: sistema/dados.
-- O localStorage permanece como cache local/offline, mas a nuvem passa a compartilhar os dados entre navegadores/dispositivos.
-- O service-worker.js foi atualizado para versão v2-firebase para forçar o navegador a buscar os arquivos novos.
+1. Dashboard com cards visuais em imagem
+- A tela inicial foi redesenhada com cards grandes para Próximo Culto, Próximo Evento, Membros, Escalas e Manutenções.
+- As imagens foram adicionadas localmente em assets/cards/ para funcionar no GitHub Pages e no PWA.
 
-Após subir no GitHub:
-1. Aguarde o Pages publicar.
-2. Abra o site e use Ctrl+Shift+R ou Cmd+Shift+R.
-3. Em um navegador, crie um perfil/evento.
-4. Em outro navegador, abra o mesmo site e aguarde alguns segundos.
-5. No Firebase > Firestore, deve aparecer a coleção sistema e o documento dados.
+2. Dark Mode / Light Mode mantido
+- O botão de alternar tema continua no canto superior.
+- O tema claro foi mantido de forma completa, incluindo menu lateral e barra inferior no celular.
 
-Observação de segurança:
-As regras de teste do Firestore expiram na data configurada no Firebase. Depois que validar o sistema, substitua por regras com autenticação.
+3. Financeiro e Doações
+- Foram adicionadas as telas Financeiro e Doações.
+- Os dados também sincronizam pelo Firebase/Firestore.
+- Essas telas exigem que o perfil tenha senha cadastrada.
 
+4. Usuário com senha
+- Ao criar um novo perfil, agora é obrigatório cadastrar uma senha.
+- Perfis antigos sem senha continuam entrando, mas precisam definir senha para acessar Financeiro e Doações.
 
-Atualização v3-ios-safe-area:
-- Corrige a barra superior no iPhone/PWA para não ficar atrás do relógio/notch.
-- Ajusta a barra inferior em celulares com área segura.
-- Atualiza o cache do Service Worker para forçar o navegador a baixar os novos arquivos.
+5. Editar usuário
+- Foi criado botão de edição do usuário no rodapé do menu lateral.
+- Também existe o botão em Configurações > Meu perfil.
+- É possível alterar nome, ministério, cargo, foto e senha.
 
-
-Correção v4-mobile-menu:
-- O menu lateral no smartphone agora fecha automaticamente ao tocar em Início, Escalas, Eventos, Manutenções, Membros ou Configurações.
-- Também fecha ao tocar fora do menu ou apertar Esc.
-- Cache do PWA atualizado para forçar a versão nova.
-
-
-Atualização adicional - Light Mode completo:
-- O tema claro agora também deixa a sidebar/menu lateral e o menu inferior mobile claros.
-- Corrigidas cores de textos, ícones, cards e botões no menu lateral.
-- Service Worker atualizado para v5-light-mode para evitar cache antigo no iPhone/Android.
+Observação de segurança
+- A senha implementada protege o uso dentro do aplicativo, mas como o app roda no navegador e o Firestore está em modo de teste, isso não substitui regras de segurança definitivas do Firebase.
+- Antes de usar dados financeiros reais, configure regras mais seguras no Firebase.

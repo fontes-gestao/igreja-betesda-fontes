@@ -7,7 +7,7 @@
    ============================================================ */
 
 // Suba este número a cada deploy para forçar atualização do cache.
-const CACHE_VERSION = 'v5-light-mode';
+const CACHE_VERSION = 'v6-dashboard-perfis';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 // Arquivos do "app shell" - essenciais para o app abrir offline.
@@ -18,6 +18,11 @@ const APP_SHELL = [
   './script.js',
   './manifest.json',
   './assets/church-logo.png',
+  './assets/cards/card-culto.png',
+  './assets/cards/card-evento.png',
+  './assets/cards/card-membros.png',
+  './assets/cards/card-escalas.png',
+  './assets/cards/card-manut.png',
   './assets/avatar-1.png',
   './assets/avatar-2.png',
   './assets/avatar-3.png',

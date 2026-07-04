@@ -60,6 +60,12 @@
       <div class="sm:col-span-2">
        <label for="pf-role" data-template-id="lbl-role" class="canva-text text-sm muted block mb-1">Cargo</label><input id="pf-role" class="w-full rounded-xl px-3 py-2">
       </div>
+      <div>
+       <label for="pf-password" class="canva-text text-sm muted block mb-1">Senha do perfil</label><input id="pf-password" type="password" minlength="4" required class="w-full rounded-xl px-3 py-2" placeholder="mínimo 4 caracteres">
+      </div>
+      <div>
+       <label for="pf-password-confirm" class="canva-text text-sm muted block mb-1">Confirmar senha</label><input id="pf-password-confirm" type="password" minlength="4" required class="w-full rounded-xl px-3 py-2">
+      </div>
      </div>
      <div class="flex gap-3 mt-5"><button type="button" id="cancel-create" class="canva-button flex-1 rounded-xl py-2.5 card2 font-medium"><span data-template-id="btn-cancel-1" class="canva-text">Cancelar</span></button> <button type="submit" class="canva-button flex-1 rounded-xl py-2.5 accent-grad text-white font-medium"><span data-template-id="btn-save-profile" class="canva-text">Salvar Perfil</span></button>
      </div>
@@ -77,7 +83,15 @@
       <p data-template-id="sidebar-tag" class="canva-text muted text-xs truncate">Gestão da Igreja</p>
      </div>
     </div>
-    <nav class="flex flex-col gap-1 mt-1 flex-1 overflow-y-auto overflow-x-hidden"><button data-view="home" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="home" class="shrink-0"></i><span data-template-id="nav-home" class="canva-text nav-label">Início</span></button> <button data-view="escalas" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="calendar-check" class="shrink-0"></i><span data-template-id="nav-escalas" class="canva-text nav-label">Escalas</span></button> <button data-view="eventos" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="party-popper" class="shrink-0"></i><span data-template-id="nav-eventos" class="canva-text nav-label">Eventos</span></button> <button data-view="manut" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="wrench" class="shrink-0"></i><span data-template-id="nav-manut" class="canva-text nav-label">Manutenções</span></button> <button data-view="membros" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="users" class="shrink-0"></i><span data-template-id="nav-membros" class="canva-text nav-label">Membros</span></button> <button data-view="config" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="settings" class="shrink-0"></i><span data-template-id="nav-config" class="canva-text nav-label">Configurações</span></button>
+    <nav class="flex flex-col gap-1 mt-1 flex-1 overflow-y-auto overflow-x-hidden">
+     <button data-view="home" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="home" class="shrink-0"></i><span data-template-id="nav-home" class="canva-text nav-label">Início</span></button>
+     <button data-view="escalas" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="calendar-check" class="shrink-0"></i><span data-template-id="nav-escalas" class="canva-text nav-label">Escalas</span></button>
+     <button data-view="eventos" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="party-popper" class="shrink-0"></i><span data-template-id="nav-eventos" class="canva-text nav-label">Eventos</span></button>
+     <button data-view="manut" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="wrench" class="shrink-0"></i><span data-template-id="nav-manut" class="canva-text nav-label">Manutenções</span></button>
+     <button data-view="membros" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="users" class="shrink-0"></i><span data-template-id="nav-membros" class="canva-text nav-label">Membros</span></button>
+     <button data-view="financeiro" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm sensitive-nav"><i data-lucide="dollar-sign" class="shrink-0"></i><span data-template-id="nav-financeiro" class="canva-text nav-label">Financeiro</span></button>
+     <button data-view="doacoes" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm sensitive-nav"><i data-lucide="heart" class="shrink-0"></i><span data-template-id="nav-doacoes" class="canva-text nav-label">Doações</span></button>
+     <button data-view="config" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="settings" class="shrink-0"></i><span data-template-id="nav-config" class="canva-text nav-label">Configurações</span></button>
     </nav>
     <div class="side-user mt-auto card2 rounded-2xl p-3 flex items-center justify-between gap-3">
      <div class="flex items-center gap-3 min-w-0">
@@ -86,10 +100,18 @@
        <p id="side-pname" class="text-sm font-medium truncate"></p>
        <p id="side-prole" class="text-xs muted truncate"></p>
       </div>
-     </div><button id="switch-profile" title="Trocar perfil" aria-label="Trocar perfil" class="muted hover:text-red-400 shrink-0 p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="log-out"></i></button>
+     </div><div class="flex items-center gap-1 shrink-0"><button id="edit-profile" title="Editar perfil" aria-label="Editar perfil" class="muted hover:text-[var(--accent)] p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="pencil"></i></button><button id="switch-profile" title="Trocar perfil" aria-label="Trocar perfil" class="muted hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="log-out"></i></button></div>
     </div>
    </aside><!-- Mobile bottom nav -->
-   <div class="md:hidden fixed bottom-0 left-0 right-0 side z-30 flex justify-around py-2"><button data-view="home" class="nav-btn rounded-xl p-2" aria-label="Início"><i data-lucide="home"></i></button> <button data-view="escalas" class="nav-btn rounded-xl p-2" aria-label="Escalas"><i data-lucide="calendar-check"></i></button> <button data-view="eventos" class="nav-btn rounded-xl p-2" aria-label="Eventos"><i data-lucide="party-popper"></i></button> <button data-view="manut" class="nav-btn rounded-xl p-2" aria-label="Manutenções"><i data-lucide="wrench"></i></button> <button data-view="membros" class="nav-btn rounded-xl p-2" aria-label="Membros"><i data-lucide="users"></i></button> <button data-view="config" class="nav-btn rounded-xl p-2" aria-label="Configurações"><i data-lucide="settings"></i></button>
+   <div class="md:hidden fixed bottom-0 left-0 right-0 side z-30 grid grid-cols-8 gap-1 px-2 py-2 mobile-bottom-nav">
+    <button data-view="home" class="nav-btn rounded-xl p-2" aria-label="Início"><i data-lucide="home"></i></button>
+    <button data-view="escalas" class="nav-btn rounded-xl p-2" aria-label="Escalas"><i data-lucide="calendar-check"></i></button>
+    <button data-view="eventos" class="nav-btn rounded-xl p-2" aria-label="Eventos"><i data-lucide="party-popper"></i></button>
+    <button data-view="manut" class="nav-btn rounded-xl p-2" aria-label="Manutenções"><i data-lucide="wrench"></i></button>
+    <button data-view="membros" class="nav-btn rounded-xl p-2" aria-label="Membros"><i data-lucide="users"></i></button>
+    <button data-view="financeiro" class="nav-btn rounded-xl p-2 sensitive-nav" aria-label="Financeiro"><i data-lucide="dollar-sign"></i></button>
+    <button data-view="doacoes" class="nav-btn rounded-xl p-2 sensitive-nav" aria-label="Doações"><i data-lucide="heart"></i></button>
+    <button data-view="config" class="nav-btn rounded-xl p-2" aria-label="Configurações"><i data-lucide="settings"></i></button>
    </div><!-- Content column -->
    <div class="flex-1 min-w-0 flex flex-col" style="max-height:calc(100 * min(var(--vh,1vh),1vh))"><!-- Top bar -->
     <header class="topbar flex items-center gap-3 px-4 md:px-6 py-3 shrink-0 canva-header">
@@ -105,87 +127,54 @@
        <div>
         <p data-template-id="home-hello" class="canva-text muted text-sm">Olá,</p>
         <h2 id="home-greeting" class="font-bold text-2xl"></h2>
-        <p data-template-id="home-subtitle" class="canva-text muted text-sm">Aqui está um resumo da semana</p>
+        <p data-template-id="home-subtitle" class="canva-text muted text-sm">Veja o que está acontecendo na sua igreja hoje.</p>
        </div><button id="add-quick" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-quick" class="canva-text">Adicionar</span></button>
       </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-7">
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-2">
-         <span data-template-id="stat-culto-label" class="canva-text muted text-xs">Próximo Culto</span><i data-lucide="calendar" style="color:var(--accent)"></i>
-        </div>
-        <p id="stat-culto" class="font-bold text-lg"></p>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-2">
-         <span data-template-id="stat-evento-label" class="canva-text muted text-xs">Próximo Evento</span><i data-lucide="party-popper" class="role-di"></i>
-        </div>
-        <p id="stat-evento" class="font-bold text-lg"></p>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-2">
-         <span data-template-id="stat-membros-label" class="canva-text muted text-xs">Membros</span><i data-lucide="users" class="role-pr"></i>
-        </div>
-        <p id="stat-membros" class="font-bold text-2xl"></p>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-2">
-         <span data-template-id="stat-pend-label" class="canva-text muted text-xs">Pendências</span><i data-lucide="wrench" class="role-or"></i>
-        </div>
-        <p id="stat-pend" class="font-bold text-2xl"></p>
-       </div>
+
+      <div class="dashboard-photo-grid mb-8">
+       <button data-card-view="escalas" class="photo-card photo-card-large" style="--photo:url('assets/cards/card-culto.png')">
+        <span class="photo-icon"><i data-lucide="calendar"></i></span>
+        <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
+        <div class="photo-content"><p class="photo-kicker">Próximo Culto</p><h3 id="stat-culto">Sem escalas</h3><p>Acompanhe os detalhes do próximo culto e prepare sua igreja.</p></div>
+       </button>
+       <button data-card-view="eventos" class="photo-card photo-card-large" style="--photo:url('assets/cards/card-evento.png')">
+        <span class="photo-icon"><i data-lucide="star"></i></span>
+        <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
+        <div class="photo-content"><p class="photo-kicker">Próximo Evento</p><h3 id="stat-evento">Sem eventos</h3><p>Divulgue e gerencie eventos especiais e confraternizações.</p></div>
+       </button>
+       <button data-card-view="membros" class="photo-card" style="--photo:url('assets/cards/card-membros.png')">
+        <span class="photo-icon"><i data-lucide="users"></i></span>
+        <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
+        <div class="photo-content"><p class="photo-kicker">Membros</p><h3 id="stat-membros">0</h3><p>Gerencie membros, famílias, visitantes e acompanhe o engajamento.</p></div>
+       </button>
+       <button data-card-view="escalas" class="photo-card" style="--photo:url('assets/cards/card-escalas.png')">
+        <span class="photo-icon"><i data-lucide="music"></i></span>
+        <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
+        <div class="photo-content"><p class="photo-kicker">Escalas</p><h3>Louvor e Serviço</h3><p>Organize equipes, ministérios e escalas de serviço.</p></div>
+       </button>
+       <button data-card-view="manut" class="photo-card" style="--photo:url('assets/cards/card-manut.png')">
+        <span class="photo-icon"><i data-lucide="wrench"></i></span>
+        <span class="photo-arrow"><i data-lucide="arrow-right"></i></span>
+        <div class="photo-content"><p class="photo-kicker">Manutenções</p><h3 id="stat-pend">0</h3><p>Acompanhe serviços, manutenções e solicitações do espaço.</p></div>
+       </button>
       </div>
+
       <div class="flex items-center justify-between mb-3">
        <h3 data-template-id="home-escalas-title" class="canva-text font-bold">Funções da Próxima Escala</h3>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-7">
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3">
-         <i data-lucide="music" class="role-lv"></i>
-        </div>
-        <p data-template-id="role-louvor" class="canva-text font-semibold text-sm">Louvor</p>
-        <div id="role-louvor-info" class="muted text-xs mt-1"></div>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3">
-         <i data-lucide="hand" class="role-or"></i>
-        </div>
-        <p data-template-id="role-oracao" class="canva-text font-semibold text-sm">Oração</p>
-        <div id="role-oracao-info" class="muted text-xs mt-1"></div>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3">
-         <i data-lucide="heart" class="role-di"></i>
-        </div>
-        <p data-template-id="role-dizimos" class="canva-text font-semibold text-sm">Dízimos</p>
-        <div id="role-dizimos-info" class="muted text-xs mt-1"></div>
-       </div>
-       <div class="card rounded-2xl p-4">
-        <div class="flex items-center justify-between mb-3">
-         <i data-lucide="book-open" class="role-pr"></i>
-        </div>
-        <p data-template-id="role-pregacao" class="canva-text font-semibold text-sm">Pregação</p>
-        <div id="role-pregacao-info" class="muted text-xs mt-1"></div>
-       </div>
+       <div class="card rounded-2xl p-4"><div class="flex items-center justify-between mb-3"><i data-lucide="music" class="role-lv"></i></div><p data-template-id="role-louvor" class="canva-text font-semibold text-sm">Louvor</p><div id="role-louvor-info" class="muted text-xs mt-1"></div></div>
+       <div class="card rounded-2xl p-4"><div class="flex items-center justify-between mb-3"><i data-lucide="hand" class="role-or"></i></div><p data-template-id="role-oracao" class="canva-text font-semibold text-sm">Oração</p><div id="role-oracao-info" class="muted text-xs mt-1"></div></div>
+       <div class="card rounded-2xl p-4"><div class="flex items-center justify-between mb-3"><i data-lucide="heart" class="role-di"></i></div><p data-template-id="role-dizimos" class="canva-text font-semibold text-sm">Dízimos</p><div id="role-dizimos-info" class="muted text-xs mt-1"></div></div>
+       <div class="card rounded-2xl p-4"><div class="flex items-center justify-between mb-3"><i data-lucide="book-open" class="role-pr"></i></div><p data-template-id="role-pregacao" class="canva-text font-semibold text-sm">Pregação</p><div id="role-pregacao-info" class="muted text-xs mt-1"></div></div>
       </div>
       <div class="grid lg:grid-cols-2 gap-4 mb-7">
-       <div class="card rounded-2xl p-5">
-        <h3 data-template-id="home-agenda-title" class="canva-text font-bold mb-3">Próximos Eventos</h3>
-        <div id="home-eventos-list" class="space-y-2"></div>
-       </div>
-       <div class="card rounded-2xl p-5">
-        <h3 data-template-id="home-manut-title" class="canva-text font-bold mb-3">Manutenções Pendentes</h3>
-        <div id="home-manut-list" class="space-y-2"></div>
-       </div>
+       <div class="card rounded-2xl p-5"><h3 data-template-id="home-agenda-title" class="canva-text font-bold mb-3">Próximos Eventos</h3><div id="home-eventos-list" class="space-y-2"></div></div>
+       <div class="card rounded-2xl p-5"><h3 data-template-id="home-manut-title" class="canva-text font-bold mb-3">Manutenções Pendentes</h3><div id="home-manut-list" class="space-y-2"></div></div>
       </div>
-      <div class="card rounded-2xl p-5 mb-7">
-       <h3 data-template-id="home-semana-title" class="canva-text font-bold mb-4">Escalas da Semana</h3>
-       <div id="home-semana-list" class="space-y-2"></div>
-      </div>
+      <div class="card rounded-2xl p-5 mb-7"><h3 data-template-id="home-semana-title" class="canva-text font-bold mb-4">Escalas da Semana</h3><div id="home-semana-list" class="space-y-2"></div></div>
       <div class="accent-grad rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-       <div>
-        <p data-template-id="cta-title" class="canva-text font-bold text-white">Cadastre novos membros</p>
-        <p data-template-id="cta-text" class="canva-text text-white/85 text-sm">Mantenha sua igreja organizada e sempre atualizada</p>
-       </div><button id="cta-btn" class="canva-button bg-white rounded-xl px-4 py-2.5 font-medium text-sm" style="color:var(--accent)"><span data-template-id="cta-button" class="canva-text">Ver Membros</span></button>
+       <div><p data-template-id="cta-title" class="canva-text font-bold text-white">Cadastre novos membros</p><p data-template-id="cta-text" class="canva-text text-white/85 text-sm">Mantenha sua igreja organizada e sempre atualizada</p></div><button id="cta-btn" class="canva-button bg-white rounded-xl px-4 py-2.5 font-medium text-sm" style="color:var(--accent)"><span data-template-id="cta-button" class="canva-text">Ver Membros</span></button>
       </div>
      </section><!-- MEMBROS -->
      <section id="view-membros" class="hidden fade-in">
@@ -222,16 +211,48 @@
       <div id="manut-list" class="grid md:grid-cols-2 gap-4"></div>
       <p id="manut-empty" data-template-id="empty-manut" class="canva-text muted text-center py-10 hidden">Nenhuma manutenção cadastrada</p>
      </section><!-- CONFIG -->
-     <section id="view-config" class="hidden fade-in max-w-xl">
+     <section id="view-financeiro" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="financeiro-title" class="canva-text font-bold">Financeiro</h2><button id="add-financeiro" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Nova movimentação</span></button>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 mb-5">
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Entradas</p><p id="fin-entradas" class="font-bold text-2xl role-di">R$ 0,00</p></div>
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Saídas</p><p id="fin-saidas" class="font-bold text-2xl role-or">R$ 0,00</p></div>
+       <div class="card rounded-2xl p-4"><p class="muted text-xs mb-1">Saldo</p><p id="fin-saldo" class="font-bold text-2xl">R$ 0,00</p></div>
+      </div>
+      <div id="financeiro-list" class="grid md:grid-cols-2 gap-4"></div>
+      <p id="financeiro-empty" class="canva-text muted text-center py-10 hidden">Nenhuma movimentação cadastrada</p>
+     </section><!-- DOAÇÕES -->
+     <section id="view-doacoes" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="doacoes-title" class="canva-text font-bold">Doações</h2><button id="add-doacao" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span>Nova doação</span></button>
+      </div>
+      <div class="card rounded-2xl p-4 mb-5"><p class="muted text-xs mb-1">Total recebido</p><p id="doacoes-total" class="font-bold text-2xl role-di">R$ 0,00</p></div>
+      <div id="doacoes-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="doacoes-empty" class="canva-text muted text-center py-10 hidden">Nenhuma doação cadastrada</p>
+     </section><!-- CONFIG -->
+     <section id="view-config" class="hidden fade-in max-w-4xl">
       <h2 data-template-id="config-title" class="canva-text font-bold mb-5">Configurações</h2>
-      <div class="card rounded-2xl p-5 space-y-5">
-       <div>
-        <label for="cfg-church" data-template-id="lbl-church-name" class="canva-text text-sm muted block mb-1">Nome da Igreja</label><input id="cfg-church" class="w-full rounded-xl px-3 py-2">
+      <div class="grid lg:grid-cols-2 gap-4">
+       <div class="card rounded-2xl p-5 space-y-5">
+        <h3 class="font-semibold flex items-center gap-2"><i data-lucide="settings" style="color:var(--accent)"></i> Sistema</h3>
+        <div><label for="cfg-church" data-template-id="lbl-church-name" class="canva-text text-sm muted block mb-1">Nome da Igreja</label><input id="cfg-church" class="w-full rounded-xl px-3 py-2"></div>
+        <div><span data-template-id="lbl-theme" class="canva-text text-sm muted block mb-2">Tema</span><div class="flex gap-2"><button id="theme-dark" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="moon"></i><span data-template-id="btn-theme-dark" class="canva-text">Escuro</span></button> <button id="theme-light" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="sun"></i><span data-template-id="btn-theme-light" class="canva-text">Claro</span></button></div></div>
+        <button id="save-config" class="canva-button w-full accent-grad text-white rounded-xl py-2.5 font-medium"><span data-template-id="btn-save-config" class="canva-text">Salvar Configurações</span></button>
        </div>
-       <div><span data-template-id="lbl-theme" class="canva-text text-sm muted block mb-2">Tema</span>
-        <div class="flex gap-2"><button id="theme-dark" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="moon"></i><span data-template-id="btn-theme-dark" class="canva-text">Escuro</span></button> <button id="theme-light" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="sun"></i><span data-template-id="btn-theme-light" class="canva-text">Claro</span></button>
+       <div class="card rounded-2xl p-5 space-y-4">
+        <h3 class="font-semibold flex items-center gap-2"><i data-lucide="user-cog" style="color:var(--accent)"></i> Meu perfil</h3>
+        <div class="flex items-center gap-4">
+         <div id="cfg-profile-avatar" class="w-16 h-16 rounded-full overflow-hidden card2 shrink-0"></div>
+         <div class="min-w-0"><p id="cfg-profile-name" class="font-semibold truncate"></p><p id="cfg-profile-role" class="muted text-sm truncate"></p></div>
         </div>
-       </div><button id="save-config" class="canva-button w-full accent-grad text-white rounded-xl py-2.5 font-medium"><span data-template-id="btn-save-config" class="canva-text">Salvar Configurações</span></button> <button id="reset-data" class="canva-button w-full rounded-xl py-2.5 font-medium" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><span data-template-id="btn-reset" class="canva-text">Apagar todos os dados</span></button>
+        <button id="edit-current-profile" class="canva-button w-full rounded-xl py-2.5 card2 font-medium flex items-center justify-center gap-2"><i data-lucide="pencil"></i><span>Editar usuário, foto e senha</span></button>
+        <p class="muted text-xs">As áreas Financeiro e Doações exigem que o perfil tenha senha cadastrada.</p>
+       </div>
+       <div class="card rounded-2xl p-5 space-y-4 lg:col-span-2">
+        <h3 class="font-semibold flex items-center gap-2 text-red-400"><i data-lucide="alert-triangle"></i> Zona de risco</h3>
+        <button id="reset-data" class="canva-button w-full rounded-xl py-2.5 font-medium" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><span data-template-id="btn-reset" class="canva-text">Apagar todos os dados</span></button>
+       </div>
       </div>
      </section>
      <footer class="mt-8 pt-4 border-t text-center" style="border-color:var(--border)">
