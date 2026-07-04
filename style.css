@@ -1,0 +1,218 @@
+:root {
+  --bg: #090a0f;
+  --sidebar: #0f111a;
+  --topbar: #0f111a;
+  --card: #151824;
+  --card-hover: #1c2030;
+  --border: rgba(255, 255, 255, 0.06);
+  --text: #f1f3f9;
+  --text-secondary: #7f85a3;
+  --icon: #7f85a3;
+  --input: #12141f;
+  --button: #202436;
+  --accent: #7C3AED;
+  --accent-secondary: #6D28D9;
+  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+html.light {
+  --bg: #f5f7fa;
+  --sidebar: #0f111a; /* Mantém a sidebar escura conforme a imagem de referência */
+  --topbar: #ffffff;
+  --card: #ffffff;
+  --card-hover: #f9fafb;
+  --border: #e4e7eb;
+  --text: #0f172a;
+  --text-secondary: #64748b;
+  --icon: #64748b;
+  --input: #ffffff;
+  --button: #f1f5f9;
+  --accent: #7C3AED;
+  --accent-secondary: #6D28D9;
+  --shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  font-family: 'DM Sans', sans-serif;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Sidebar styling - sempre escura, baseada na imagem */
+.side {
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  color: #f1f3f9;
+}
+.side .muted {
+  color: #7f85a3;
+}
+.side-brand-text p {
+  color: #f1f3f9;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.card2 {
+  background: var(--button);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+.accent-grad {
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+}
+
+.topbar {
+  background: var(--topbar);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.nav-btn {
+  color: #7f85a3;
+  transition: 0.18s;
+}
+
+.nav-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-btn.active {
+  color: #ffffff !important;
+  background: var(--accent);
+  box-shadow: 0 10px 24px -10px var(--accent);
+}
+
+input, textarea, select {
+  background: var(--input);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.22);
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fade-in {
+  animation: fade 0.4s ease both;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.avatar-opt {
+  transition: 0.2s;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--input);
+  color: var(--text);
+}
+
+.avatar-opt.sel {
+  border-color: var(--accent);
+  transform: scale(1.06);
+}
+
+.av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+
+[data-lucide] {
+  width: 20px;
+  height: 20px;
+}
+
+.role-lv { color: #a78bff; }
+.role-or { color: #ffb15c; }
+.role-di { color: #4fd18f; }
+.role-pr { color: #5bb8ff; }
+
+html.light .role-lv { color: #7c3aed; }
+html.light .role-or { color: #ea580c; }
+html.light .role-di { color: #16a34a; }
+html.light .role-pr { color: #2563eb; }
+
+/* Collapsible sidebar */
+.app-sidebar {
+  width: 16rem;
+  transition: width 0.28s ease;
+}
+
+#app.collapsed .app-sidebar {
+  width: 5rem;
+}
+
+#app.collapsed .nav-label, #app.collapsed .side-brand-text, #app.collapsed .side-user-text {
+  display: none;
+}
+
+#app.collapsed .side-brand {
+  justify-content: center;
+}
+
+#app.collapsed .nav-btn {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#app.collapsed .side-user {
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border-color: transparent;
+}
+
+#app.collapsed .side-user button, #app.collapsed .side-user .side-user-text {
+  display: none;
+}
+
+.collapse-toggle {
+  color: var(--text-secondary);
+  transition: 0.18s;
+}
+
+.collapse-toggle:hover {
+  color: var(--text);
+  background: var(--button);
+}

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Igreja Betesda Fontes - Sistema de Gestão</title>
+
+  <!-- PWA: manifest e cor de tema (sincronizada com dark/light no script.js) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" id="meta-theme-color" content="#0A0B13">
+
+  <!-- PWA: iOS (Safari não lê manifest.json da mesma forma que Android) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Betesda">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!-- Ícones -->
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+ </head>
+ <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
+  <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
+   <div class="card rounded-3xl w-full max-w-2xl p-8 fade-in" style="box-shadow:var(--shadow)">
+    <div class="flex items-center gap-3 mb-6">
+     <div class="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-black border border-white/10">
+      <img data-template-id="church-logo" class="canva-image w-full h-full object-cover" alt="Logo da Igreja" src="assets/church-logo.png">
+     </div>
+     <div>
+      <h1 data-template-id="brand-title" class="canva-text font-bold leading-tight">Igreja Betesda Fontes</h1>
+      <p data-template-id="brand-subtitle" class="canva-text muted text-sm">Sistema de Gestão</p>
+     </div>
+    </div>
+    <div id="profile-list-wrap">
+     <h2 data-template-id="profile-select-heading" class="canva-text font-bold mb-3">Selecione seu perfil</h2>
+     <div id="profile-list" class="grid sm:grid-cols-2 gap-3 mb-5"></div><button id="show-create-btn" class="canva-button w-full rounded-2xl py-3 accent-grad text-white font-medium flex items-center justify-center gap-2"><i data-lucide="user-plus"></i><span data-template-id="create-profile-btn" class="canva-text">Criar novo perfil</span></button>
+    </div>
+    <form id="profile-form" class="hidden mt-2">
+     <h2 data-template-id="profile-create-heading" class="canva-text font-bold mb-4">Criar Perfil</h2>
+     <div class="flex flex-col items-center mb-4">
+      <div id="pf-avatar-preview" class="w-24 h-24 rounded-full overflow-hidden card2 flex items-center justify-center text-white">
+       <i data-lucide="user"></i>
+      </div>
+      <div class="flex flex-wrap gap-2 justify-center mt-3 max-w-md" id="avatar-options"></div><label for="pf-upload" class="mt-3 text-sm cursor-pointer flex items-center gap-1 muted hover:opacity-80"><i data-lucide="upload" style="width:16px;height:16px"></i><span data-template-id="upload-avatar-label" class="canva-text">Enviar foto</span></label> <input id="pf-upload" type="file" accept="image/*" class="hidden">
+     </div>
+     <div class="grid sm:grid-cols-2 gap-3">
+      <div>
+       <label for="pf-name" data-template-id="lbl-name" class="canva-text text-sm muted block mb-1">Nome</label><input id="pf-name" required class="w-full rounded-xl px-3 py-2">
+      </div>
+      <div>
+       <label for="pf-min" data-template-id="lbl-ministry" class="canva-text text-sm muted block mb-1">Ministério</label><input id="pf-min" class="w-full rounded-xl px-3 py-2">
+      </div>
+      <div class="sm:col-span-2">
+       <label for="pf-role" data-template-id="lbl-role" class="canva-text text-sm muted block mb-1">Cargo</label><input id="pf-role" class="w-full rounded-xl px-3 py-2">
+      </div>
+     </div>
+     <div class="flex gap-3 mt-5"><button type="button" id="cancel-create" class="canva-button flex-1 rounded-xl py-2.5 card2 font-medium"><span data-template-id="btn-cancel-1" class="canva-text">Cancelar</span></button> <button type="submit" class="canva-button flex-1 rounded-xl py-2.5 accent-grad text-white font-medium"><span data-template-id="btn-save-profile" class="canva-text">Salvar Perfil</span></button>
+     </div>
+    </form>
+   </div>
+  </div><!-- ============ APP SHELL ============ -->
+  <div id="app" class="hidden min-h-screen w-full flex"><!-- Sidebar -->
+   <aside class="side app-sidebar shrink-0 hidden md:flex flex-col p-3 gap-1 canva-sidebar" data-template-id="sidebar">
+    <div class="side-brand flex items-center gap-3 px-2 py-3 mb-1">
+     <div class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-black border border-white/10 shrink-0">
+      <img data-template-id="church-logo" class="canva-image w-full h-full object-cover" alt="Logo da Igreja" src="assets/church-logo.png">
+     </div>
+     <div class="side-brand-text min-w-0">
+      <p id="sidebar-church-name" class="font-bold leading-tight text-sm truncate text-[var(--text)]"></p>
+      <p data-template-id="sidebar-tag" class="canva-text muted text-xs truncate">Gestão da Igreja</p>
+     </div>
+    </div>
+    <nav class="flex flex-col gap-1 mt-1 flex-1 overflow-y-auto overflow-x-hidden"><button data-view="home" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="home" class="shrink-0"></i><span data-template-id="nav-home" class="canva-text nav-label">Início</span></button> <button data-view="escalas" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="calendar-check" class="shrink-0"></i><span data-template-id="nav-escalas" class="canva-text nav-label">Escalas</span></button> <button data-view="eventos" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="party-popper" class="shrink-0"></i><span data-template-id="nav-eventos" class="canva-text nav-label">Eventos</span></button> <button data-view="manut" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="wrench" class="shrink-0"></i><span data-template-id="nav-manut" class="canva-text nav-label">Manutenções</span></button> <button data-view="membros" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="users" class="shrink-0"></i><span data-template-id="nav-membros" class="canva-text nav-label">Membros</span></button> <button data-view="config" class="nav-btn rounded-xl px-3 py-2.5 flex items-center gap-3 text-left text-sm"><i data-lucide="settings" class="shrink-0"></i><span data-template-id="nav-config" class="canva-text nav-label">Configurações</span></button>
+    </nav>
+    <div class="side-user mt-auto card2 rounded-2xl p-3 flex items-center justify-between gap-3">
+     <div class="flex items-center gap-3 min-w-0">
+      <div id="side-avatar" class="w-10 h-10 rounded-full overflow-hidden shrink-0 card2 flex items-center justify-center"></div>
+      <div class="side-user-text min-w-0 flex-1">
+       <p id="side-pname" class="text-sm font-medium truncate"></p>
+       <p id="side-prole" class="text-xs muted truncate"></p>
+      </div>
+     </div><button id="switch-profile" title="Trocar perfil" aria-label="Trocar perfil" class="muted hover:text-red-400 shrink-0 p-1.5 rounded-lg hover:bg-white/5"><i data-lucide="log-out"></i></button>
+    </div>
+   </aside><!-- Mobile bottom nav -->
+   <div class="md:hidden fixed bottom-0 left-0 right-0 side z-30 flex justify-around py-2"><button data-view="home" class="nav-btn rounded-xl p-2" aria-label="Início"><i data-lucide="home"></i></button> <button data-view="escalas" class="nav-btn rounded-xl p-2" aria-label="Escalas"><i data-lucide="calendar-check"></i></button> <button data-view="eventos" class="nav-btn rounded-xl p-2" aria-label="Eventos"><i data-lucide="party-popper"></i></button> <button data-view="manut" class="nav-btn rounded-xl p-2" aria-label="Manutenções"><i data-lucide="wrench"></i></button> <button data-view="membros" class="nav-btn rounded-xl p-2" aria-label="Membros"><i data-lucide="users"></i></button> <button data-view="config" class="nav-btn rounded-xl p-2" aria-label="Configurações"><i data-lucide="settings"></i></button>
+   </div><!-- Content column -->
+   <div class="flex-1 min-w-0 flex flex-col" style="max-height:calc(100 * min(var(--vh,1vh),1vh))"><!-- Top bar -->
+    <header class="topbar flex items-center gap-3 px-4 md:px-6 py-3 shrink-0 canva-header">
+     <button id="collapse-toggle" class="collapse-toggle hidden md:flex items-center justify-center w-9 h-9 rounded-lg shrink-0" aria-label="Recolher menu"><i data-lucide="panel-left-close"></i></button> <button id="mobile-menu" class="collapse-toggle md:hidden flex items-center justify-center w-9 h-9 rounded-lg shrink-0" aria-label="Menu"><i data-lucide="menu"></i></button>
+     <h2 id="topbar-page-title" class="font-bold text-lg truncate flex-1 min-w-0"></h2>
+     <div class="relative hidden sm:block w-40 md:w-64">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 muted" style="width:16px;height:16px"></i><input id="top-search" data-template-id="topbar-search" placeholder="Pesquisar..." class="canva-input w-full rounded-xl pl-9 pr-3 py-2 text-sm">
+     </div><button id="bell-btn" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Notificações"><i data-lucide="bell" style="width:18px;height:18px"></i></button> <button id="topbar-theme" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Alternar tema"><i id="topbar-theme-icon" data-lucide="sun" style="width:18px;height:18px"></i></button>
+    </header>
+    <main class="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto"><!-- HOME -->
+     <section id="view-home" class="fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+       <div>
+        <p data-template-id="home-hello" class="canva-text muted text-sm">Olá,</p>
+        <h2 id="home-greeting" class="font-bold text-2xl"></h2>
+        <p data-template-id="home-subtitle" class="canva-text muted text-sm">Aqui está um resumo da semana</p>
+       </div><button id="add-quick" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-quick" class="canva-text">Adicionar</span></button>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-7">
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2">
+         <span data-template-id="stat-culto-label" class="canva-text muted text-xs">Próximo Culto</span><i data-lucide="calendar" style="color:var(--accent)"></i>
+        </div>
+        <p id="stat-culto" class="font-bold text-lg"></p>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2">
+         <span data-template-id="stat-evento-label" class="canva-text muted text-xs">Próximo Evento</span><i data-lucide="party-popper" class="role-di"></i>
+        </div>
+        <p id="stat-evento" class="font-bold text-lg"></p>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2">
+         <span data-template-id="stat-membros-label" class="canva-text muted text-xs">Membros</span><i data-lucide="users" class="role-pr"></i>
+        </div>
+        <p id="stat-membros" class="font-bold text-2xl"></p>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2">
+         <span data-template-id="stat-pend-label" class="canva-text muted text-xs">Pendências</span><i data-lucide="wrench" class="role-or"></i>
+        </div>
+        <p id="stat-pend" class="font-bold text-2xl"></p>
+       </div>
+      </div>
+      <div class="flex items-center justify-between mb-3">
+       <h3 data-template-id="home-escalas-title" class="canva-text font-bold">Funções da Próxima Escala</h3>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-7">
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+         <i data-lucide="music" class="role-lv"></i>
+        </div>
+        <p data-template-id="role-louvor" class="canva-text font-semibold text-sm">Louvor</p>
+        <div id="role-louvor-info" class="muted text-xs mt-1"></div>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+         <i data-lucide="hand" class="role-or"></i>
+        </div>
+        <p data-template-id="role-oracao" class="canva-text font-semibold text-sm">Oração</p>
+        <div id="role-oracao-info" class="muted text-xs mt-1"></div>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+         <i data-lucide="heart" class="role-di"></i>
+        </div>
+        <p data-template-id="role-dizimos" class="canva-text font-semibold text-sm">Dízimos</p>
+        <div id="role-dizimos-info" class="muted text-xs mt-1"></div>
+       </div>
+       <div class="card rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-3">
+         <i data-lucide="book-open" class="role-pr"></i>
+        </div>
+        <p data-template-id="role-pregacao" class="canva-text font-semibold text-sm">Pregação</p>
+        <div id="role-pregacao-info" class="muted text-xs mt-1"></div>
+       </div>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-4 mb-7">
+       <div class="card rounded-2xl p-5">
+        <h3 data-template-id="home-agenda-title" class="canva-text font-bold mb-3">Próximos Eventos</h3>
+        <div id="home-eventos-list" class="space-y-2"></div>
+       </div>
+       <div class="card rounded-2xl p-5">
+        <h3 data-template-id="home-manut-title" class="canva-text font-bold mb-3">Manutenções Pendentes</h3>
+        <div id="home-manut-list" class="space-y-2"></div>
+       </div>
+      </div>
+      <div class="card rounded-2xl p-5 mb-7">
+       <h3 data-template-id="home-semana-title" class="canva-text font-bold mb-4">Escalas da Semana</h3>
+       <div id="home-semana-list" class="space-y-2"></div>
+      </div>
+      <div class="accent-grad rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+       <div>
+        <p data-template-id="cta-title" class="canva-text font-bold text-white">Cadastre novos membros</p>
+        <p data-template-id="cta-text" class="canva-text text-white/85 text-sm">Mantenha sua igreja organizada e sempre atualizada</p>
+       </div><button id="cta-btn" class="canva-button bg-white rounded-xl px-4 py-2.5 font-medium text-sm" style="color:var(--accent)"><span data-template-id="cta-button" class="canva-text">Ver Membros</span></button>
+      </div>
+     </section><!-- MEMBROS -->
+     <section id="view-membros" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="membros-title" class="canva-text font-bold">Membros</h2><button id="add-member" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-add-member" class="canva-text">Adicionar Membro</span></button>
+      </div>
+      <div class="relative mb-4">
+       <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 muted"></i><input id="member-search" data-template-id="search-member" placeholder="Buscar membro..." class="canva-input w-full rounded-xl pl-10 pr-3 py-2.5">
+      </div>
+      <div id="member-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="member-empty" data-template-id="empty-members" class="canva-text muted text-center py-10 hidden">Nenhum membro cadastrado</p>
+     </section><!-- ESCALAS -->
+     <section id="view-escalas" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="escalas-title" class="canva-text font-bold">Escalas</h2><button id="add-escala" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-add-escala" class="canva-text">Nova Escala</span></button>
+      </div>
+      <div class="relative mb-4">
+       <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 muted"></i><input id="escala-search" data-template-id="search-escala" placeholder="Buscar escala..." class="canva-input w-full rounded-xl pl-10 pr-3 py-2.5">
+      </div>
+      <div id="escala-list" class="grid md:grid-cols-2 gap-4"></div>
+      <p id="escala-empty" data-template-id="empty-escalas" class="canva-text muted text-center py-10 hidden">Nenhuma escala cadastrada</p>
+     </section><!-- EVENTOS -->
+     <section id="view-eventos" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="eventos-title" class="canva-text font-bold">Eventos</h2><button id="add-evento" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-add-evento" class="canva-text">Novo Evento</span></button>
+      </div>
+      <div id="evento-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="evento-empty" data-template-id="empty-eventos" class="canva-text muted text-center py-10 hidden">Nenhum evento cadastrado</p>
+     </section><!-- MANUTENÇÕES -->
+     <section id="view-manut" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+       <h2 data-template-id="manut-title" class="canva-text font-bold">Manutenções</h2><button id="add-manut" class="canva-button accent-grad text-white rounded-xl px-4 py-2.5 flex items-center gap-2 font-medium text-sm"><i data-lucide="plus"></i><span data-template-id="btn-add-manut" class="canva-text">Nova Manutenção</span></button>
+      </div>
+      <div id="manut-list" class="grid md:grid-cols-2 gap-4"></div>
+      <p id="manut-empty" data-template-id="empty-manut" class="canva-text muted text-center py-10 hidden">Nenhuma manutenção cadastrada</p>
+     </section><!-- CONFIG -->
+     <section id="view-config" class="hidden fade-in max-w-xl">
+      <h2 data-template-id="config-title" class="canva-text font-bold mb-5">Configurações</h2>
+      <div class="card rounded-2xl p-5 space-y-5">
+       <div>
+        <label for="cfg-church" data-template-id="lbl-church-name" class="canva-text text-sm muted block mb-1">Nome da Igreja</label><input id="cfg-church" class="w-full rounded-xl px-3 py-2">
+       </div>
+       <div><span data-template-id="lbl-theme" class="canva-text text-sm muted block mb-2">Tema</span>
+        <div class="flex gap-2"><button id="theme-dark" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="moon"></i><span data-template-id="btn-theme-dark" class="canva-text">Escuro</span></button> <button id="theme-light" class="canva-button flex-1 rounded-xl py-2.5 card2 flex items-center justify-center gap-2"><i data-lucide="sun"></i><span data-template-id="btn-theme-light" class="canva-text">Claro</span></button>
+        </div>
+       </div><button id="save-config" class="canva-button w-full accent-grad text-white rounded-xl py-2.5 font-medium"><span data-template-id="btn-save-config" class="canva-text">Salvar Configurações</span></button> <button id="reset-data" class="canva-button w-full rounded-xl py-2.5 font-medium" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><span data-template-id="btn-reset" class="canva-text">Apagar todos os dados</span></button>
+      </div>
+     </section>
+     <footer class="mt-8 pt-4 border-t text-center" style="border-color:var(--border)">
+      <p data-template-id="footer-text" class="canva-text muted text-xs">© 2026 Igreja Betesda Fontes · Sistema de Gestão</p>
+     </footer>
+    </main>
+   </div>
+  </div><!-- ============ MODAL ============ -->
+  <div id="modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
+   <div class="card rounded-3xl w-full max-w-xl max-h-[90%] overflow-y-auto p-6 fade-in" style="box-shadow:var(--shadow)">
+    <div class="flex items-center justify-between mb-4">
+     <h3 id="modal-title" class="font-bold text-lg"></h3><button id="modal-close" class="muted hover:text-red-400" aria-label="Fechar"><i data-lucide="x"></i></button>
+    </div>
+    <form id="modal-form" class="grid sm:grid-cols-2 gap-3"></form>
+    <div class="flex gap-3 mt-5"><button id="modal-cancel" class="canva-button flex-1 rounded-xl py-2.5 card2 font-medium"><span data-template-id="btn-cancel-2" class="canva-text">Cancelar</span></button> <button id="modal-save" class="canva-button flex-1 rounded-xl py-2.5 accent-grad text-white font-medium"><span data-template-id="btn-save" class="canva-text">Salvar</span></button>
+    </div>
+   </div>
+  </div><!-- Hidden template for default avatar/logo images (embedded as inline SVG so the page works without any external image host) -->
+  <div class="hidden">
+   <img data-template-id="avatar-1" class="canva-image" src="assets/avatar-1.png">
+   <img data-template-id="avatar-2" class="canva-image" src="assets/avatar-2.png">
+   <img data-template-id="avatar-3" class="canva-image" src="assets/avatar-3.png">
+   <img data-template-id="avatar-4" class="canva-image" src="assets/avatar-4.png">
+   <img data-template-id="avatar-5" class="canva-image" src="assets/avatar-5.png">
+   <img data-template-id="avatar-6" class="canva-image" src="assets/avatar-6.png">
+   <img data-template-id="avatar-7" class="canva-image" src="assets/avatar-7.png">
+   <img data-template-id="avatar-8" class="canva-image" src="assets/avatar-8.png">
+   <img data-template-id="avatar-9" class="canva-image" src="assets/avatar-9.png">
+   <img data-template-id="church-logo" class="canva-image" src="assets/church-logo.png">
+  </div>
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[60] card rounded-xl px-5 py-3 text-sm font-medium fade-in" style="box-shadow:var(--shadow)"></div>
+
+  <!-- ============ PWA: botão de instalação (não faz parte das telas do sistema, aparece só quando o navegador permite instalar) ============ -->
+  <button id="pwa-install-btn" class="hidden fixed bottom-5 right-5 z-[70] accent-grad text-white rounded-full px-5 py-3 font-medium text-sm flex items-center gap-2" style="box-shadow:var(--shadow)">
+   <i data-lucide="download"></i> Instalar aplicativo
+  </button>
+
+  <!-- ============ PWA: instrução manual para iPhone/iPad (Safari não permite instalar via prompt automático) ============ -->
+  <div id="ios-install-hint" class="hidden fixed inset-x-4 bottom-5 z-[70] card rounded-2xl p-4 max-w-sm mx-auto" style="box-shadow:var(--shadow)">
+   <div class="flex items-start gap-3">
+    <i data-lucide="share" class="shrink-0" style="color:var(--accent)"></i>
+    <div class="flex-1 text-sm">
+     <p class="font-semibold mb-1">Instalar no iPhone/iPad</p>
+     <p class="muted">Toque em <strong>Compartilhar</strong> na barra do Safari e depois em <strong>"Adicionar à Tela de Início"</strong>.</p>
+    </div>
+    <button id="ios-install-hint-close" class="muted hover:text-red-400 shrink-0" aria-label="Fechar"><i data-lucide="x"></i></button>
+   </div>
+  </div>
+
+  <script src="script.js" defer></script>
+ </body>
+</html>
