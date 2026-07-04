@@ -309,14 +309,19 @@ $('#profile-form').onsubmit=e=>{
 };
 $('#switch-profile').onclick=()=>{activeProfile=null;LS.set('active_profile',null);$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
 $('#edit-profile').onclick=()=>openEditProfileModal();
+$('#topbar-user-profile') && ($('#topbar-user-profile').onclick=()=>openEditProfileModal());
 /* APP */
 function openApp(){
   $('#profile-screen').classList.add('hidden');$('#app').classList.remove('hidden');
   applySidebarState();
   const p=profiles.find(x=>x.id===activeProfile);
   if(p){
-    $('#side-pname').textContent=p.name;$('#side-prole').textContent=(p.role||'')+(p.ministry?' · '+p.ministry:'');
+    const roleLine=(p.role||'')+(p.ministry?' · '+p.ministry:'');
+    $('#side-pname').textContent=p.name;$('#side-prole').textContent=roleLine;
     $('#side-avatar').innerHTML=avatarImg(p.avatar,'av-img');
+    $('#topbar-pname') && ($('#topbar-pname').textContent=p.name||'');
+    $('#topbar-prole') && ($('#topbar-prole').textContent=roleLine||'Perfil ativo');
+    $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
     $('#home-greeting').textContent=p.name+' 👋';
   }
   refreshSettingsUI();switchView('home');icons();
@@ -353,9 +358,13 @@ function refreshSettingsUI(){
   $('#cfg-church').value=settings.churchName||'';
   const p=currentProfile();
   if(p){
+    const roleLine=(p.role||'')+(p.ministry?' · '+p.ministry:'');
     $('#cfg-profile-avatar') && ($('#cfg-profile-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
     $('#cfg-profile-name') && ($('#cfg-profile-name').textContent=p.name||'');
-    $('#cfg-profile-role') && ($('#cfg-profile-role').textContent=(p.role||'')+(p.ministry?' · '+p.ministry:''));
+    $('#cfg-profile-role') && ($('#cfg-profile-role').textContent=roleLine);
+    $('#topbar-pname') && ($('#topbar-pname').textContent=p.name||'');
+    $('#topbar-prole') && ($('#topbar-prole').textContent=roleLine||'Perfil ativo');
+    $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
   }
   updateThemeButtons();
 }
@@ -671,7 +680,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-cachefix-v7';
+const APP_VERSION = '20260704-topbar-logo-v8';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

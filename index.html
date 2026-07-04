@@ -6,9 +6,9 @@
   <title>Igreja Betesda Fontes - Sistema de Gestão</title>
 
   <!-- PWA: manifest e cor de tema (sincronizada com dark/light no script.js) -->
-  <link rel="manifest" href="manifest.json?v=20260704-cachefix-v7">
+  <link rel="manifest" href="manifest.json?v=20260704-topbar-logo-v8">
   <meta name="theme-color" id="meta-theme-color" content="#0A0B13">
-  <meta name="app-version" content="20260704-cachefix-v7">
+  <meta name="app-version" content="20260704-topbar-logo-v8">
 
   <!-- PWA: iOS (Safari não lê manifest.json da mesma forma que Android) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,14 +25,14 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260704-cachefix-v7">
+  <link rel="stylesheet" href="style.css?v=20260704-topbar-logo-v8">
  </head>
  <body data-template-id="__page-root" class="min-h-screen w-full"><!-- ============ PROFILE SCREEN ============ -->
   <div id="profile-screen" class="min-h-screen w-full flex items-center justify-center p-4">
    <div class="card rounded-3xl w-full max-w-2xl p-8 fade-in" style="box-shadow:var(--shadow)">
     <div class="flex items-center gap-3 mb-6">
-     <div class="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-black border border-white/10">
-      <img data-template-id="church-logo" class="canva-image w-full h-full object-cover" alt="Logo da Igreja" src="assets/church-logo.png">
+     <div class="brand-logo-box w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-black border border-white/10">
+      <img data-template-id="church-logo" class="canva-image brand-logo-img" alt="Logo da Igreja" src="assets/church-logo.png">
      </div>
      <div>
       <h1 data-template-id="brand-title" class="canva-text font-bold leading-tight">Igreja Betesda Fontes</h1>
@@ -76,8 +76,8 @@
   <div id="app" class="hidden min-h-screen w-full flex"><!-- Sidebar -->
    <aside class="side app-sidebar shrink-0 hidden md:flex flex-col p-3 gap-1 canva-sidebar" data-template-id="sidebar">
     <div class="side-brand flex items-center gap-3 px-2 py-3 mb-1">
-     <div class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-black border border-white/10 shrink-0">
-      <img data-template-id="church-logo" class="canva-image w-full h-full object-cover" alt="Logo da Igreja" src="assets/church-logo.png">
+     <div class="brand-logo-box w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-black border border-white/10 shrink-0">
+      <img data-template-id="church-logo" class="canva-image brand-logo-img" alt="Logo da Igreja" src="assets/church-logo.png">
      </div>
      <div class="side-brand-text min-w-0">
       <p id="sidebar-church-name" class="font-bold leading-tight text-sm truncate text-[var(--text)]"></p>
@@ -120,7 +120,7 @@
      <h2 id="topbar-page-title" class="font-bold text-lg truncate flex-1 min-w-0"></h2>
      <div class="relative hidden sm:block w-40 md:w-64">
       <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 muted" style="width:16px;height:16px"></i><input id="top-search" data-template-id="topbar-search" placeholder="Pesquisar..." class="canva-input w-full rounded-xl pl-9 pr-3 py-2 text-sm">
-     </div><button id="bell-btn" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Notificações"><i data-lucide="bell" style="width:18px;height:18px"></i></button> <button id="topbar-theme" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Alternar tema"><i id="topbar-theme-icon" data-lucide="sun" style="width:18px;height:18px"></i></button>
+     </div><button id="bell-btn" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Notificações"><i data-lucide="bell" style="width:18px;height:18px"></i></button> <button id="topbar-theme" class="card2 rounded-xl w-9 h-9 flex items-center justify-center shrink-0 muted hover:text-[var(--accent)]" aria-label="Alternar tema"><i id="topbar-theme-icon" data-lucide="sun" style="width:18px;height:18px"></i></button> <button id="topbar-user-profile" class="topbar-user card2 rounded-xl h-10 px-2 lg:px-3 flex items-center gap-2 shrink-0 text-left hover:border-[var(--accent)]" aria-label="Editar usuário"><div id="topbar-avatar" class="w-8 h-8 rounded-full overflow-hidden card2 shrink-0"></div><div class="topbar-user-text hidden lg:block min-w-0"><p id="topbar-pname" class="text-sm font-semibold truncate leading-tight"></p><p id="topbar-prole" class="text-[11px] muted truncate leading-tight"></p></div><i data-lucide="chevron-down" class="hidden lg:block muted" style="width:16px;height:16px"></i></button>
     </header>
     <main class="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto"><!-- HOME -->
      <section id="view-home" class="fade-in">
@@ -303,6 +303,6 @@
    </div>
   </div>
 
-  <script type="module" src="script.js?v=20260704-cachefix-v7"></script>
+  <script type="module" src="script.js?v=20260704-topbar-logo-v8"></script>
  </body>
 </html>

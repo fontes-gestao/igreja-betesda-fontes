@@ -6,15 +6,15 @@
    - Ao publicar uma versão nova no GitHub, o app atualiza sem precisar limpar cache.
    ============================================================ */
 
-const CACHE_VERSION = '20260704-cachefix-v7';
+const CACHE_VERSION = '20260704-topbar-logo-v8';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=20260704-cachefix-v7',
-  './script.js?v=20260704-cachefix-v7',
-  './manifest.json?v=20260704-cachefix-v7',
+  './style.css?v=20260704-topbar-logo-v8',
+  './script.js?v=20260704-topbar-logo-v8',
+  './manifest.json?v=20260704-topbar-logo-v8',
   './assets/church-logo.png',
   './assets/cards/card-culto.png',
   './assets/cards/card-evento.png',

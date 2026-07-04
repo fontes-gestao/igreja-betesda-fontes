@@ -42,6 +42,40 @@ body {
   color: var(--text);
 }
 
+/* Logo da Betesda: mantém o símbolo inteiro, centralizado e sem corte. */
+.brand-logo-box {
+  background: #000;
+}
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center center;
+  padding: 5px;
+  display: block;
+}
+.side-brand .brand-logo-img {
+  padding: 4px;
+}
+
+/* Usuário no canto superior direito */
+.topbar-user {
+  min-width: 2.5rem;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+.topbar-user:hover {
+  transform: translateY(-1px);
+}
+#topbar-avatar .av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 420px) {
+  .topbar { gap: .45rem; }
+  .topbar-user { padding-left: .35rem; padding-right: .35rem; }
+}
+
 /* Sidebar e navegação: no tema escuro ficam escuras; no tema claro ficam claras. */
 .side {
   background: var(--sidebar);
@@ -324,6 +358,7 @@ html.light #topbar-theme {
 
 html.light #bell-btn:hover,
 html.light #topbar-theme:hover,
+html.light #topbar-user-profile:hover,
 html.light .collapse-toggle:hover {
   color: var(--accent);
 }

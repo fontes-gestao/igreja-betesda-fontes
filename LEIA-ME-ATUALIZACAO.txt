@@ -32,3 +32,10 @@ Atualização 20260704-cachefix-v7
 - index.html agora chama style.css, script.js e manifest.json com versão na URL.
 - service-worker.js agora usa network-first para HTML/CSS/JS/JSON e cache-first só para imagens/ícones.
 - O app tenta aplicar novas versões automaticamente sem exigir limpeza manual de cache.
+
+
+Atualização 20260704-topbar-logo-v8:
+- Logo da Betesda ajustado para não cortar dentro da caixa.
+- Foto/nome do usuário adicionados no canto superior direito da barra superior.
+- Botão Dark/Light mantido ao lado dos alertas e antes do usuário.
+- Cache do PWA atualizado para forçar a nova versão.
