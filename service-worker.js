@@ -1,12 +1,12 @@
 /* ============================================================
    Service Worker - Betesda Fontes (PWA)
-   Versão 20260704-devocional-anual-2026-v15
+   Versão 20260704-planos-originais-v16
    - Corrige cache preso em iPhone/Android/Chrome.
    - HTML, JS, CSS e manifest sempre tentam buscar a versão nova primeiro.
    - Imagens e ícones continuam em cache para o PWA funcionar melhor offline.
    ============================================================ */
 
-const CACHE_VERSION = '20260704-devocional-anual-2026-v15';
+const CACHE_VERSION = '20260704-planos-originais-v16';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [

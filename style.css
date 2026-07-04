@@ -546,3 +546,146 @@ html.light .collapse-toggle:hover {
     radial-gradient(circle at top right, rgba(124, 58, 237, 0.18), transparent 35%),
     var(--card);
 }
+
+
+/* Biblioteca de planos devocionais — capas originais Betesda */
+.reading-plan-card {
+  padding: 0;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.reading-plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.reading-plan-card.selected {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  box-shadow: 0 18px 38px -26px var(--accent);
+}
+.plan-cover {
+  position: relative;
+  min-height: 180px;
+  overflow: hidden;
+  color: #fff;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  isolation: isolate;
+}
+.plan-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.24), transparent 28%),
+    linear-gradient(145deg, rgba(0,0,0,.15), rgba(0,0,0,.55));
+  z-index: -1;
+}
+.plan-cover::after {
+  content: '';
+  position: absolute;
+  right: -2.5rem;
+  bottom: -3.5rem;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 999px;
+  border: 28px solid rgba(255,255,255,.12);
+  z-index: -1;
+}
+.plan-cover-large {
+  min-height: 100%;
+  border-radius: 0;
+}
+.plan-cover-glow {
+  position: absolute;
+  inset: auto -2rem -3rem auto;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  filter: blur(4px);
+  z-index: -1;
+}
+.plan-cover-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.plan-cover-icon [data-lucide] { width: 1.45rem; height: 1.45rem; }
+.plan-cover-kicker {
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .8;
+  font-weight: 700;
+}
+.plan-cover-text h4 {
+  font-size: 1.35rem;
+  line-height: 1.05;
+  font-weight: 800;
+  margin-top: .25rem;
+  max-width: 14rem;
+}
+.plan-cover-text span {
+  display: inline-flex;
+  margin-top: .7rem;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+}
+.cover-annual { background: linear-gradient(135deg,#5b21b6,#7c3aed 45%,#db2777); }
+.cover-prayer { background: linear-gradient(135deg,#1e3a8a,#2563eb 45%,#38bdf8); }
+.cover-faith { background: linear-gradient(135deg,#064e3b,#059669 45%,#84cc16); }
+.cover-service { background: linear-gradient(135deg,#7c2d12,#ea580c 45%,#f59e0b); }
+.cover-family { background: linear-gradient(135deg,#831843,#be185d 45%,#f472b6); }
+.cover-worship { background: linear-gradient(135deg,#111827,#6d28d9 50%,#0ea5e9); }
+.plan-progress {
+  height: .5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  overflow: hidden;
+}
+.plan-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg,var(--accent),var(--accent-secondary));
+}
+.plan-day {
+  border-color: var(--border);
+}
+.plan-day.today {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+.plan-day.done {
+  opacity: .72;
+}
+.plan-day-check {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  flex: 0 0 auto;
+  background: transparent;
+}
+.plan-day-check.done {
+  background: linear-gradient(135deg,var(--accent),var(--accent-secondary));
+  border-color: transparent;
+}
+@media (max-width: 1024px) {
+  .plan-cover-large { min-height: 240px; }
+}

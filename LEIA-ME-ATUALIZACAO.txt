@@ -1,34 +1,11 @@
-Atualização: Devocional automático + módulos relevantes para Betesda Fontes
+Atualização: Planos originais Betesda
 
-Esta versão mantém os módulos escolhidos para o sistema da igreja e acrescenta o plano devocional automático para 2026.
+Incluído nesta versão:
+- Biblioteca de planos devocionais com capas próprias, inspirada no formato de apps devocionais, sem copiar planos ou capas de terceiros.
+- Planos originais: Plano Anual Betesda 2026, Vida de Oração, Fé que Permanece, Servir com Propósito, Família e Comunhão, Louvor e Adoração.
+- Progresso por plano com botão de concluir leitura.
+- Plano anual automático de julho a dezembro de 2026 mantido.
+- Devocional do dia, mural de avisos, pedidos de oração, financeiro, doações e notificações internas mantidos.
+- Cache/PWA atualizado para versão 20260704-planos-originais-v16.
 
-1. Devocional / Plano de leitura
-- Agora possui devocional automático diário.
-- Inclui plano de leitura de 01/07/2026 até 31/12/2026.
-- Mostra o devocional do dia automaticamente, sem precisar alguém cadastrar manualmente.
-- A tela Devocional mostra o destaque do dia e a lista do plano anual.
-- Ainda permite adicionar devocionais extras manualmente, quando a igreja quiser.
-
-2. Mural de Avisos
-- Área para comunicados da igreja.
-- Permite cadastrar avisos por categoria e prioridade.
-- Últimos avisos aparecem na tela inicial.
-
-3. Pedidos de Oração
-- Área para cadastrar pedidos e gratidões.
-- Controle de status: Em oração / Respondido.
-- Resumo aparece na tela inicial.
-
-4. Financeiro e Doações
-- Financeiro com resumo por categoria.
-- Doações com tipo de doação: Dízimo, Oferta, Missões, Campanha, Evento ou Outro.
-- Doações com resumo por tipo.
-
-5. Notificações
-- O sino no topo abre uma central de notificações.
-- Agora também mostra o devocional do dia.
-- Mantém aniversariantes, avisos, pedidos de oração, próximo evento e próxima escala.
-
-6. Cache/PWA
-- Atualizada a versão do PWA para 20260704-devocional-anual-2026-v15.
-- HTML, CSS, JS e manifest continuam buscando versão nova primeiro para reduzir problema de cache.
+Suba todo o conteúdo da pasta pwa na raiz do repositório do GitHub Pages.

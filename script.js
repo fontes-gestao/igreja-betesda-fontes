@@ -772,6 +772,243 @@ function buildAutoDevotionalPlan2026(){
   });
 }
 const AUTO_DEVOTIONALS_2026=buildAutoDevotionalPlan2026();
+
+
+/* PLANOS ORIGINAIS BETESDA — biblioteca com capas e progresso
+   Conteúdo próprio: títulos, reflexões e estrutura criados para uso interno da Betesda Fontes.
+   Usamos referências bíblicas, não copiamos textos/capas de plataformas externas. */
+const BETESDA_PLAN_DEFS=[
+  {
+    id:'plano-anual-2026',
+    title:'Plano Anual Betesda 2026',
+    duration:'Jul-Dez 2026',
+    icon:'calendar-days',
+    cover:'cover-annual',
+    subtitle:'Leitura diária para os meses restantes de 2026',
+    description:'Um caminho contínuo de leitura, oração e reflexão para manter a igreja alinhada com a Palavra todos os dias.',
+    days:()=>AUTO_DEVOTIONALS_2026.map((d,i)=>({day:i+1,date:d.date,title:d.title,reference:d.reference,reading:d.reading,reflection:d.content}))
+  },
+  {
+    id:'vida-de-oracao',
+    title:'Vida de Oração',
+    duration:'21 dias',
+    icon:'hand',
+    cover:'cover-prayer',
+    subtitle:'Aprendendo a conversar com Deus todos os dias',
+    description:'Um plano para fortalecer a intimidade com Deus, cultivar constância e transformar preocupações em oração.',
+    days:[
+      ['O convite à oração','Mateus 6:5-13','Jesus nos ensina que oração não é performance, é relacionamento com o Pai. Comece hoje separando um momento simples e sincero diante de Deus.'],
+      ['Ore com confiança','Hebreus 4:16','A graça nos permite chegar diante de Deus sem medo. Ele ouve, acolhe e sustenta quem se aproxima com fé.'],
+      ['Persistência','Lucas 18:1-8','A oração constante forma perseverança no coração. Nem sempre a resposta é imediata, mas Deus trabalha enquanto esperamos.'],
+      ['Gratidão','Filipenses 4:6-7','A ansiedade perde força quando apresentamos tudo a Deus com gratidão. A paz do Senhor guarda mente e coração.'],
+      ['Oração em secreto','Mateus 6:6','Há encontros com Deus que ninguém vê, mas que sustentam tudo o que vivemos em público.'],
+      ['Intercessão','1 Timóteo 2:1','Interceder é carregar pessoas em oração. A igreja se fortalece quando ora uns pelos outros.'],
+      ['Ouvir Deus','Salmos 46:10','Orar também é silenciar para reconhecer que Deus é Deus. Nem toda oração precisa ser cheia de palavras.'],
+      ['Perdão na oração','Marcos 11:25','A oração abre espaço para cura. Ao perdoar, entregamos a Deus pesos que não precisamos carregar.'],
+      ['Dependência','João 15:5','Sem Cristo, nossa força se esgota. Em oração reconhecemos que dependemos Dele para frutificar.'],
+      ['Clamor','Jeremias 33:3','Deus convida Seu povo a clamar. Mesmo quando não vemos saída, Ele conhece caminhos que não enxergamos.'],
+      ['Sabedoria','Tiago 1:5','Antes de decidir, ore. Deus dá sabedoria ao coração que reconhece seus limites.'],
+      ['Fé em meio à espera','Salmos 27:14','Esperar no Senhor não é inércia; é confiança ativa. A oração sustenta a esperança.'],
+      ['Oração e santidade','Salmos 139:23-24','Deus também responde mostrando o que precisa ser tratado em nós. A oração nos alinha ao caminho eterno.'],
+      ['Família em oração','Josué 24:15','Uma casa que busca ao Senhor constrói fundamentos firmes. Ore por sua família e por futuras gerações.'],
+      ['Igreja em oração','Atos 2:42','A igreja nasce e cresce em oração, comunhão, doutrina e partir do pão.'],
+      ['Liderança em oração','Colossenses 4:2-4','Ore por quem lidera, ensina, serve e cuida. A obra de Deus precisa de cobertura espiritual.'],
+      ['Oração e missão','Mateus 9:37-38','Jesus nos manda orar por trabalhadores. A missão começa no altar e se move para as ruas.'],
+      ['Confissão','1 João 1:9','Confessar é abrir o coração para a restauração de Deus. Ele é fiel para perdoar e purificar.'],
+      ['Adoração','Salmos 95:6','A oração também é rendição e adoração. Antes de pedir, reconheça quem Deus é.'],
+      ['Paz','Isaías 26:3','Deus guarda em perfeita paz aquele cuja mente permanece Nele. A oração reposiciona nosso foco.'],
+      ['Continue orando','1 Tessalonicenses 5:17','Uma vida de oração não termina em um plano. Continue cultivando diálogo diário com Deus.']
+    ]
+  },
+  {
+    id:'fe-que-permanece',
+    title:'Fé que Permanece',
+    duration:'14 dias',
+    icon:'shield-check',
+    cover:'cover-faith',
+    subtitle:'Força espiritual para dias difíceis',
+    description:'Um plano para lembrar que a fé cristã não depende das circunstâncias, mas da fidelidade de Deus.',
+    days:[
+      ['Firmes na Rocha','Mateus 7:24-27','A fé se fortalece quando escolhemos praticar a Palavra. O fundamento certo sustenta a casa nos ventos fortes.'],
+      ['Quando não entendo','Isaías 55:8-9','Nem sempre entenderemos o caminho, mas podemos confiar no caráter de Deus.'],
+      ['Esperança viva','1 Pedro 1:3','Nossa esperança não é frágil: ela nasce da ressurreição de Cristo.'],
+      ['Coragem','Josué 1:9','Deus não apenas manda ser forte; Ele promete estar conosco.'],
+      ['Paciência','Romanos 5:3-5','A perseverança produz maturidade. Deus usa processos para formar caráter.'],
+      ['Descanso','Mateus 11:28-30','Jesus não chama os cansados para mais peso, mas para descanso verdadeiro.'],
+      ['Olhos em Cristo','Hebreus 12:1-2','Fixar os olhos em Jesus nos ajuda a correr com perseverança.'],
+      ['Provisão','Filipenses 4:19','Deus conhece nossas necessidades. Sua provisão chega conforme Sua vontade e sabedoria.'],
+      ['Presença','Salmos 23','O Pastor caminha conosco nos vales e nas mesas preparadas.'],
+      ['Vitória em Cristo','Romanos 8:37','Somos mais que vencedores porque Cristo nos sustenta, não porque somos fortes sozinhos.'],
+      ['Fidelidade','Lamentações 3:22-23','As misericórdias do Senhor se renovam a cada manhã.'],
+      ['Obediência','João 14:21','A fé verdadeira se revela em amor e obediência.'],
+      ['Alegria','Neemias 8:10','A alegria do Senhor é força para continuar.'],
+      ['Permaneça','João 15:4','Permanecer em Cristo é a fonte do fruto.']
+    ]
+  },
+  {
+    id:'servir-com-proposito',
+    title:'Servir com Propósito',
+    duration:'14 dias',
+    icon:'heart-handshake',
+    cover:'cover-service',
+    subtitle:'Para equipes, ministérios e voluntários',
+    description:'Uma jornada para servir com excelência, humildade e amor, lembrando que tudo é para Deus.',
+    days:[
+      ['Chamados para servir','Marcos 10:45','Jesus serviu primeiro. Nosso serviço nasce do exemplo Dele.'],
+      ['Servir com alegria','Salmos 100:2','Alegria no serviço transforma tarefas em adoração.'],
+      ['Excelência','Colossenses 3:23','Servimos a Deus em cada detalhe, mesmo quando ninguém percebe.'],
+      ['Humildade','Filipenses 2:3-4','A humildade abre espaço para unidade e cuidado mútuo.'],
+      ['Dons espirituais','1 Pedro 4:10','Cada dom recebido é uma oportunidade de servir ao próximo.'],
+      ['Unidade','1 Coríntios 12:12-27','O corpo tem muitos membros, mas um só propósito.'],
+      ['Fidelidade','Lucas 16:10','A fidelidade nas pequenas coisas prepara o coração para responsabilidades maiores.'],
+      ['Coração ensinável','Provérbios 19:20','Quem serve bem também aprende, escuta e se deixa corrigir.'],
+      ['Cuidado com pessoas','Gálatas 6:2','Servir é carregar fardos com amor e sensibilidade.'],
+      ['Sem comparação','Romanos 12:4-8','Cada pessoa tem uma função. Comparação enfraquece; propósito fortalece.'],
+      ['Perseverança','1 Coríntios 15:58','O trabalho no Senhor não é vão. Continue firme.'],
+      ['Liderança servidora','João 13:14-15','Jesus lavou pés. Liderar no Reino é servir.'],
+      ['Motivação correta','Mateus 6:1','Deus vê o coração por trás das obras.'],
+      ['Para a glória de Deus','1 Coríntios 10:31','Tudo pode glorificar a Deus quando nasce de um coração rendido.']
+    ]
+  },
+  {
+    id:'familia-comunhao',
+    title:'Família e Comunhão',
+    duration:'14 dias',
+    icon:'users',
+    cover:'cover-family',
+    subtitle:'Relacionamentos firmados em amor e perdão',
+    description:'Um plano para fortalecer família, comunhão e cuidado entre irmãos.',
+    days:[
+      ['Casa edificada','Salmos 127:1','O Senhor é o fundamento de toda casa. Sem Ele, esforço vira peso.'],
+      ['Amor paciente','1 Coríntios 13:4-7','O amor bíblico é prático, paciente e perseverante.'],
+      ['Perdão no lar','Colossenses 3:13','Perdoar é abrir caminho para reconciliação e cura.'],
+      ['Palavras que curam','Provérbios 15:1','Palavras brandas podem desarmar conflitos.'],
+      ['Honra','Romanos 12:10','Honrar é reconhecer valor no outro.'],
+      ['Comunhão da igreja','Atos 2:46-47','A comunhão cristã se expressa em presença, partilha e alegria.'],
+      ['Cuidado mútuo','João 13:34-35','O amor entre irmãos é testemunho do evangelho.'],
+      ['Paciência com diferenças','Efésios 4:2-3','Unidade exige humildade, mansidão e paciência.'],
+      ['Oração em família','Deuteronômio 6:6-7','A fé também é ensinada no cotidiano da casa.'],
+      ['Acolhimento','Romanos 15:7','Cristo nos acolheu; por isso acolhemos pessoas.'],
+      ['Generosidade','Atos 4:32','Comunhão verdadeira não ignora necessidades.'],
+      ['Conselho sábio','Provérbios 11:14','Bons conselhos protegem decisões e relacionamentos.'],
+      ['Paz','Romanos 12:18','Onde depender de nós, devemos buscar a paz.'],
+      ['Um só corpo','Efésios 4:16','Quando cada parte coopera, o corpo cresce em amor.']
+    ]
+  },
+  {
+    id:'louvor-adoracao',
+    title:'Louvor e Adoração',
+    duration:'10 dias',
+    icon:'music',
+    cover:'cover-worship',
+    subtitle:'Vida no altar antes da canção',
+    description:'Um plano para equipes de louvor e para todos que desejam adorar com vida inteira.',
+    days:[
+      ['Adoração em verdade','João 4:23-24','Deus procura adoradores, não apenas canções. A verdadeira adoração envolve espírito e verdade.'],
+      ['Cântico novo','Salmos 96:1','Louvar é anunciar a grandeza do Senhor com coração renovado.'],
+      ['Excelência e coração','Salmos 33:3','Tocar bem importa, mas o coração rendido vem primeiro.'],
+      ['Presença de Deus','Salmos 22:3','O louvor nos lembra que Deus reina e está presente com Seu povo.'],
+      ['Humildade no palco','João 3:30','Todo ministério deve apontar para Cristo, não para pessoas.'],
+      ['Unidade da equipe','Romanos 15:5-6','Uma equipe unida adora com uma só voz e um só propósito.'],
+      ['Santidade','Salmos 24:3-4','Quem ministra também é chamado a cuidar do coração.'],
+      ['Gratidão cantada','Colossenses 3:16','Cânticos espirituais também ensinam, encorajam e fortalecem a igreja.'],
+      ['Antes do microfone','Mateus 5:23-24','A adoração pública precisa caminhar com reconciliação e integridade.'],
+      ['Tudo para Deus','Salmos 115:1','A glória pertence ao Senhor.']
+    ]
+  }
+];
+function normalizePlanDays(plan){
+  const raw=typeof plan.days==='function'?plan.days():plan.days;
+  return raw.map((d,i)=>{
+    if(Array.isArray(d)) return {day:i+1,title:d[0],reference:d[1],reflection:d[2],reading:d[1]};
+    return {day:i+1,...d};
+  });
+}
+function getReadingPlans(){return BETESDA_PLAN_DEFS.map(p=>({...p,days:normalizePlanDays(p)}));}
+function getPlanProgress(){return LS.get('reading_plan_progress',{} ) || {};}
+function getProfileProgressKey(){return activeProfile||'geral';}
+function isPlanDayDone(planId,day){const all=getPlanProgress();return !!(all[getProfileProgressKey()]?.[planId]?.[day]);}
+function togglePlanDay(planId,day){
+  const all=getPlanProgress(); const key=getProfileProgressKey();
+  all[key]=all[key]||{}; all[key][planId]=all[key][planId]||{};
+  all[key][planId][day]=!all[key][planId][day];
+  LS.set('reading_plan_progress',all);
+  renderReadingPlanDetail(planId);
+  renderReadingPlanLibrary(false);
+}
+function getPlanCompletion(plan){
+  const done=plan.days.filter(d=>isPlanDayDone(plan.id,d.day)).length;
+  const total=plan.days.length||1;
+  return {done,total,pct:Math.round((done/total)*100)};
+}
+function renderReadingPlanLibrary(renderDetail=true){
+  const wrap=$('#reading-plan-library'); if(!wrap)return;
+  const plans=getReadingPlans();
+  const selected=LS.get('selected_reading_plan',plans[0]?.id)||plans[0]?.id;
+  wrap.innerHTML=plans.map(p=>{
+    const prog=getPlanCompletion(p);
+    return `<button type="button" class="reading-plan-card card rounded-3xl overflow-hidden text-left hover:opacity-95 ${p.id===selected?'selected':''}" data-plan-id="${esc(p.id)}">
+      <div class="plan-cover ${esc(p.cover||'cover-annual')}">
+        <div class="plan-cover-glow"></div>
+        <div class="plan-cover-icon"><i data-lucide="${esc(p.icon||'book-open')}"></i></div>
+        <div class="plan-cover-text"><p class="plan-cover-kicker">Plano Betesda</p><h4>${esc(p.title)}</h4><span>${esc(p.duration)}</span></div>
+      </div>
+      <div class="p-4">
+        <p class="font-semibold">${esc(p.title)}</p>
+        <p class="muted text-sm mt-1">${esc(p.subtitle)}</p>
+        <div class="plan-progress mt-3"><span style="width:${prog.pct}%"></span></div>
+        <p class="text-xs muted mt-2">${prog.done}/${prog.total} concluídos · ${prog.pct}%</p>
+      </div>
+    </button>`;
+  }).join('');
+  wrap.querySelectorAll('[data-plan-id]').forEach(b=>b.onclick=()=>{LS.set('selected_reading_plan',b.dataset.planId);renderReadingPlanLibrary(true);});
+  if(renderDetail) renderReadingPlanDetail(selected);
+  icons();
+}
+function renderReadingPlanDetail(planId){
+  const box=$('#reading-plan-detail'); if(!box)return;
+  const plan=getReadingPlans().find(p=>p.id===planId) || getReadingPlans()[0];
+  if(!plan){box.innerHTML='';return;}
+  const prog=getPlanCompletion(plan);
+  const today=todayISO();
+  const todayDay=plan.id==='plano-anual-2026' ? (plan.days.find(d=>d.date===today)?.day || 1) : Math.min(prog.done+1, plan.days.length);
+  const previewDays=plan.days.map(d=>{
+    const done=isPlanDayDone(plan.id,d.day);
+    const isToday=plan.id==='plano-anual-2026' && d.date===today;
+    return `<div class="plan-day card2 rounded-2xl p-3 ${done?'done':''} ${isToday?'today':''}">
+      <div class="flex items-start gap-3">
+        <button type="button" class="plan-day-check ${done?'done':''}" data-plan="${esc(plan.id)}" data-day="${d.day}" aria-label="Concluir dia ${d.day}">${done?'✓':' '}</button>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2"><p class="font-semibold">Dia ${d.day} · ${esc(d.title||'Leitura')}</p>${isToday?'<span class="text-[11px] px-2 py-0.5 rounded-full accent-grad text-white">Hoje</span>':''}</div>
+          <p class="text-xs muted mt-0.5">${d.date?fmtDate(d.date)+' · ':''}${esc(d.reference||d.reading||'')}</p>
+          ${d.reading&&d.reading!==d.reference?`<p class="text-xs muted mt-1 whitespace-pre-line">Leitura: ${esc(d.reading)}</p>`:''}
+          <p class="text-sm muted mt-2">${esc(d.reflection||'Separe um momento para ler, meditar e orar.')}</p>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  box.innerHTML=`<div class="card rounded-3xl overflow-hidden plan-detail-card">
+    <div class="grid lg:grid-cols-[320px_1fr]">
+      <div class="plan-cover plan-cover-large ${esc(plan.cover||'cover-annual')}">
+        <div class="plan-cover-glow"></div>
+        <div class="plan-cover-icon"><i data-lucide="${esc(plan.icon||'book-open')}"></i></div>
+        <div class="plan-cover-text"><p class="plan-cover-kicker">Plano selecionado</p><h4>${esc(plan.title)}</h4><span>${esc(plan.duration)}</span></div>
+      </div>
+      <div class="p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div><h3 class="font-bold text-xl">${esc(plan.title)}</h3><p class="muted text-sm mt-1">${esc(plan.description)}</p></div>
+          <button type="button" class="canva-button rounded-xl px-4 py-2.5 card2 text-sm font-medium" id="complete-current-plan-day"><i data-lucide="check-circle" style="display:inline;width:16px;height:16px"></i> Concluir próximo dia</button>
+        </div>
+        <div class="plan-progress mt-4"><span style="width:${prog.pct}%"></span></div>
+        <p class="text-xs muted mt-2">${prog.done}/${prog.total} dias concluídos · ${prog.pct}%</p>
+        <div class="plan-days mt-5 grid gap-3 max-h-[560px] overflow-y-auto pr-1">${previewDays}</div>
+      </div>
+    </div>
+  </div>`;
+  $('#complete-current-plan-day')?.addEventListener('click',()=>togglePlanDay(plan.id,todayDay));
+  box.querySelectorAll('.plan-day-check').forEach(btn=>btn.addEventListener('click',()=>togglePlanDay(btn.dataset.plan,Number(btn.dataset.day))));
+  icons();
+}
 function getAllDevocionais(){
   const manual=Array.isArray(devocionais)?devocionais.map(d=>({...d,auto:false})):[];
   return [...manual,...AUTO_DEVOTIONALS_2026];
@@ -808,6 +1045,7 @@ function renderHomeSpiritualPanels(){
   }
 }
 function renderDevocionais(){
+  renderReadingPlanLibrary();
   const list=sortDevocionaisForDisplay(getAllDevocionais());
   const current=getDevocionalAtual();
   const c=$('#devocional-list'); if(!c) return;
@@ -1123,7 +1361,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-devocional-anual-2026-v15';
+const APP_VERSION = '20260704-planos-originais-v16';
 
 (function forceOneTimeCacheRefresh(){
   try{
