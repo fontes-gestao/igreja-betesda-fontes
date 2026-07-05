@@ -39,3 +39,9 @@ Atualização adicional:
 - Louvor inclui: Ministro, Violão, Teclado, Vocais, Bateria e Cajon/Percussão.
 - Pregação inclui Pregador por domingo.
 - Liderança inclui Oração Inicial, Oração Dízimos e Oração Final por domingo.
+
+
+Atualização v22:
+- Criada opção para excluir o perfil atual mediante senha do próprio perfil.
+- Usuário ADM pode gerenciar e excluir perfis comuns sem precisar da senha do usuário.
+- O perfil ADM é protegido e não pode ser excluído.
