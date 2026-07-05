@@ -90,6 +90,12 @@ function mergeCloudPayload(remote={}, local={}){
     merged[k]=mergeArrayById(remote[k], local[k]);
   });
   merged.settings={...(remote.settings||{}),...(local.settings||{})};
+  // Perfis excluídos ficam registrados em settings.deletedProfileIds.
+  // Isso evita que outro navegador com cache antigo traga o perfil de volta na próxima sincronização.
+  const deletedProfiles = new Set(Array.isArray(merged.settings.deletedProfileIds) ? merged.settings.deletedProfileIds.map(String) : []);
+  if(deletedProfiles.size && Array.isArray(merged.profiles)){
+    merged.profiles = merged.profiles.filter(p => p && (String(p.id) === ADMIN_PROFILE_ID || !deletedProfiles.has(String(p.id))));
+  }
   merged.clientUpdatedAt=Math.max(remoteClientUpdatedAt(remote), remoteClientUpdatedAt(local), currentLocalUpdatedAt(), Date.now());
   merged.updatedAt=serverTimestamp();
   return merged;
@@ -517,15 +523,27 @@ $('#admin-manage-profiles').onclick=()=>openAdminProfilesModal();
 $('#reset-data').onclick=()=>openAdminResetModal();
 
 
-async function commitProfilesDirect(nextProfiles){
-  // Exclusão precisa gravar direto no Firestore, sem mesclar com perfis antigos.
-  // Se usar a mesclagem comum, um perfil removido poderia voltar a aparecer vindo de outro navegador.
+function rememberDeletedProfileId(id){
+  if(!id || String(id)===ADMIN_PROFILE_ID) return;
+  const current = Array.isArray(settings.deletedProfileIds) ? settings.deletedProfileIds.map(String) : [];
+  const next = Array.from(new Set([...current, String(id)]));
+  settings = {...settings, deletedProfileIds: next};
+  localStorage.setItem('igreja_settings', JSON.stringify(settings));
+}
+
+async function commitProfilesDirect(nextProfiles, deletedProfileId=null){
+  // Exclusão precisa gravar direto no Firestore e registrar o ID apagado.
+  // Assim a mesclagem segura não traz o perfil de volta vindo de outro navegador/cache antigo.
+  if(deletedProfileId) rememberDeletedProfileId(deletedProfileId);
   ensureAdminProfile(false);
   profiles = Array.isArray(nextProfiles) ? nextProfiles : profiles;
+  const deletedProfiles = new Set(Array.isArray(settings.deletedProfileIds) ? settings.deletedProfileIds.map(String) : []);
+  profiles = profiles.filter(p => p && (String(p.id)===ADMIN_PROFILE_ID || !deletedProfiles.has(String(p.id))));
   const adm = profiles.find(p=>p.id===ADMIN_PROFILE_ID) || adminProfileTemplate();
   profiles = [adm, ...profiles.filter(p=>p.id!==ADMIN_PROFILE_ID)];
   markLocalDataChanged();
   localStorage.setItem('igreja_profiles', JSON.stringify(profiles));
+  localStorage.setItem('igreja_settings', JSON.stringify(settings));
   const payload = collectCloudData();
   try{
     await setDoc(cloudDoc, payload, {merge:false});
@@ -548,16 +566,21 @@ function openDeleteCurrentProfileModal(){
       <p class="font-semibold text-red-400 flex items-center gap-2"><i data-lucide="trash-2"></i> Excluir perfil</p>
       <p class="muted text-sm mt-1">Essa ação remove somente o perfil <strong>${esc(p.name||'')}</strong>. Não apaga membros, escalas, eventos, financeiro, doações ou demais dados do sistema.</p>
     </div>
-    ${profileHasPassword(p) ? '<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="delete-profile-password">Senha do perfil *</label><input id="delete-profile-password" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password"></div>' : '<div class="sm:col-span-2 rounded-xl p-3 card2 text-sm">Este perfil ainda não possui senha. Para segurança, cadastre uma senha em “Editar usuário” ou entre com o perfil ADM para excluir.</div>'}
+    ${profileHasPassword(p) ? '<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="delete-profile-password">Senha do perfil</label><input id="delete-profile-password" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password"><p class="muted text-xs mt-1">Use a senha deste perfil ou as credenciais do ADM abaixo.</p></div>' : '<div class="sm:col-span-2 rounded-xl p-3 card2 text-sm">Este perfil não tem senha cadastrada. Use as credenciais do ADM abaixo para excluir.</div>'}
+    <div class="sm:col-span-2 grid sm:grid-cols-2 gap-3 rounded-xl p-3 card2">
+      <div><label class="text-sm muted block mb-1" for="delete-adm-user">Usuário ADM</label><input id="delete-adm-user" class="w-full rounded-xl px-3 py-2" placeholder="ADM" autocomplete="username"></div>
+      <div><label class="text-sm muted block mb-1" for="delete-adm-password">Senha ADM</label><input id="delete-adm-password" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password"></div>
+    </div>
     <label class="sm:col-span-2 flex items-start gap-2 text-sm muted"><input id="delete-profile-confirm" type="checkbox" class="mt-1"> <span>Confirmo que desejo excluir apenas este perfil.</span></label>`;
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
   const saveBtn=$('#modal-save');
   saveBtn.innerHTML='<span>Excluir perfil</span>';
   saveBtn.onclick=async()=>{
-    if(!profileHasPassword(p)){toast('Cadastre uma senha antes ou use o ADM');return;}
-    if(hashPassword($('#delete-profile-password').value)!==p.passwordHash){toast('Senha incorreta');return;}
+    const profilePassOk = profileHasPassword(p) && hashPassword($('#delete-profile-password')?.value||'')===p.passwordHash;
+    const admOk = validAdminCredentials($('#delete-adm-user')?.value||'', $('#delete-adm-password')?.value||'');
+    if(!profilePassOk && !admOk){toast('Informe a senha do perfil ou as credenciais do ADM');return;}
     if(!$('#delete-profile-confirm').checked){toast('Marque a confirmação');return;}
-    const ok=await commitProfilesDirect(profiles.filter(x=>x.id!==p.id));
+    const ok=await commitProfilesDirect(profiles.filter(x=>x.id!==p.id), p.id);
     if(!ok)return;
     activeProfile=null;
     localStorage.setItem('igreja_active_profile', JSON.stringify(null));
@@ -601,7 +624,7 @@ function openAdminProfilesModal(){
       const prof=profiles.find(p=>p.id===id);
       if(!prof || prof.id===ADMIN_PROFILE_ID)return;
       if(!confirm(`Excluir o perfil "${prof.name||'Sem nome'}"?`))return;
-      const ok=await commitProfilesDirect(profiles.filter(p=>p.id!==id));
+      const ok=await commitProfilesDirect(profiles.filter(p=>p.id!==id), id);
       if(!ok)return;
       row.remove();
       renderProfiles();

@@ -47,3 +47,9 @@ Atualização v22:
 - Perfil ADM é preservado e não pode ser excluído.
 - Exclusão de perfil não apaga membros, escalas, eventos, financeiro, doações ou demais dados.
 - Mantidas as escalas mensais por domingos do mês, Bateria e Cajon/Percussão.
+
+
+Atualização v23:
+- Exclusão de perfil corrigida com registro de perfis apagados para impedir que voltem pelo cache/Firebase.
+- Perfil comum pode ser excluído com a senha do próprio perfil ou com credenciais ADM.
+- ADM pode excluir perfis comuns em Gerenciar perfis.
