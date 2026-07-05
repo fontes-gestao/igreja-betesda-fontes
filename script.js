@@ -485,13 +485,11 @@ function refreshSettingsUI(){
     $('#topbar-pname') && ($('#topbar-pname').textContent=p.name||'');
     $('#topbar-prole') && ($('#topbar-prole').textContent=roleLine||'Perfil ativo');
     $('#topbar-avatar') && ($('#topbar-avatar').innerHTML=avatarImg(p.avatar,'av-img'));
+    $('#admin-manage-profiles') && $('#admin-manage-profiles').classList.toggle('hidden', !isAdminProfile(p));
+    $('#delete-current-profile') && $('#delete-current-profile').classList.toggle('hidden', isAdminProfile(p));
   }
   const risk=$('#risk-zone');
   if(risk) risk.classList.remove('hidden');
-  const deleteBtn=$('#delete-current-profile');
-  if(deleteBtn) deleteBtn.classList.toggle('hidden', isAdminProfile(p));
-  const manageBtn=$('#admin-manage-profiles');
-  if(manageBtn) manageBtn.classList.toggle('hidden', !isAdminProfile(p));
   updateThemeButtons();
 }
 function updateThemeButtons(){
@@ -514,97 +512,102 @@ $('#theme-dark').onclick=()=>{settings.theme='dark';LS.set('settings',settings);
 $('#theme-light').onclick=()=>{settings.theme='light';LS.set('settings',settings);applyTheme();updateThemeButtons();toast('Tema Claro aplicado');};
 $('#save-config').onclick=()=>{settings.churchName=$('#cfg-church').value.trim()||'Igreja Betesda Fontes';LS.set('settings',settings);refreshSettingsUI();toast('Configurações salvas');};
 $('#edit-current-profile').onclick=()=>openEditProfileModal();
-$('#delete-current-profile') && ($('#delete-current-profile').onclick=()=>openDeleteCurrentProfileModal());
-$('#admin-manage-profiles') && ($('#admin-manage-profiles').onclick=()=>openAdminProfilesModal());
+$('#delete-current-profile').onclick=()=>openDeleteCurrentProfileModal();
+$('#admin-manage-profiles').onclick=()=>openAdminProfilesModal();
 $('#reset-data').onclick=()=>openAdminResetModal();
 
 
-function isProtectedProfileId(id){
-  return id===ADMIN_PROFILE_ID;
-}
-function removeProfileById(profileId){
-  if(isProtectedProfileId(profileId)) { toast('O perfil ADM não pode ser excluído'); return false; }
-  const before=profiles.length;
-  profiles=profiles.filter(p=>p.id!==profileId);
-  if(profiles.length===before){toast('Perfil não encontrado');return false;}
-  LS.set('profiles',profiles);
-  if(activeProfile===profileId){
-    activeProfile=null;
-    LS.set('active_profile',null);
-    $('#app')?.classList.add('hidden');
-    $('#profile-screen')?.classList.remove('hidden');
-    renderProfiles();
-  } else {
-    refreshSettingsUI();
-    renderProfiles();
+async function commitProfilesDirect(nextProfiles){
+  // Exclusão precisa gravar direto no Firestore, sem mesclar com perfis antigos.
+  // Se usar a mesclagem comum, um perfil removido poderia voltar a aparecer vindo de outro navegador.
+  ensureAdminProfile(false);
+  profiles = Array.isArray(nextProfiles) ? nextProfiles : profiles;
+  const adm = profiles.find(p=>p.id===ADMIN_PROFILE_ID) || adminProfileTemplate();
+  profiles = [adm, ...profiles.filter(p=>p.id!==ADMIN_PROFILE_ID)];
+  markLocalDataChanged();
+  localStorage.setItem('igreja_profiles', JSON.stringify(profiles));
+  const payload = collectCloudData();
+  try{
+    await setDoc(cloudDoc, payload, {merge:false});
+    return true;
+  }catch(err){
+    console.error('Erro ao excluir perfil na nuvem:', err);
+    toast('Erro ao atualizar perfis na nuvem');
+    return false;
   }
-  saveCloudData();
-  toast('Perfil excluído');
-  return true;
 }
+
 function openDeleteCurrentProfileModal(){
+  resetModalSaveButton();
   const p=currentProfile();
   if(!p){toast('Selecione um perfil primeiro');return;}
   if(isAdminProfile(p)){toast('O perfil ADM não pode ser excluído');return;}
-  resetModalSaveButton();
   $('#modal-title').textContent='Excluir perfil';
-  const hasPass=profileHasPassword(p);
   $('#modal-form').innerHTML=`
     <div class="sm:col-span-2 rounded-xl p-3" style="border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.08)">
       <p class="font-semibold text-red-400 flex items-center gap-2"><i data-lucide="trash-2"></i> Excluir perfil</p>
-      <p class="muted text-sm mt-1">Esta ação exclui somente o perfil <strong>${esc(p.name||'')}</strong>. Os membros, escalas, eventos e demais dados do sistema não serão apagados.</p>
+      <p class="muted text-sm mt-1">Essa ação remove somente o perfil <strong>${esc(p.name||'')}</strong>. Não apaga membros, escalas, eventos, financeiro, doações ou demais dados do sistema.</p>
     </div>
-    ${hasPass?'<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="delete-profile-password">Senha do perfil</label><input id="delete-profile-password" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password" placeholder="Digite a senha deste perfil"></div>':'<div class="sm:col-span-2 rounded-xl p-3 card2 text-sm muted">Este perfil não possui senha cadastrada. Para excluir, confirme abaixo.</div>'}
-    <div class="sm:col-span-2"><label class="flex items-start gap-2 text-sm muted"><input id="delete-profile-confirm" type="checkbox" class="mt-1"> <span>Confirmo que quero excluir este perfil.</span></label></div>
-    <p id="delete-profile-error" class="hidden sm:col-span-2 text-sm text-red-400 font-semibold"></p>`;
+    ${profileHasPassword(p) ? '<div class="sm:col-span-2"><label class="text-sm muted block mb-1" for="delete-profile-password">Senha do perfil *</label><input id="delete-profile-password" type="password" class="w-full rounded-xl px-3 py-2" autocomplete="current-password"></div>' : '<div class="sm:col-span-2 rounded-xl p-3 card2 text-sm">Este perfil ainda não possui senha. Para segurança, cadastre uma senha em “Editar usuário” ou entre com o perfil ADM para excluir.</div>'}
+    <label class="sm:col-span-2 flex items-start gap-2 text-sm muted"><input id="delete-profile-confirm" type="checkbox" class="mt-1"> <span>Confirmo que desejo excluir apenas este perfil.</span></label>`;
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
   const saveBtn=$('#modal-save');
   saveBtn.innerHTML='<span>Excluir perfil</span>';
-  saveBtn.classList.remove('accent-grad');
-  saveBtn.style.background='#dc2626';
-  saveBtn.style.color='#fff';
-  const err=$('#delete-profile-error');
-  saveBtn.onclick=()=>{
-    err.classList.add('hidden');err.textContent='';
-    if(hasPass && hashPassword($('#delete-profile-password').value)!==p.passwordHash){err.textContent='Senha incorreta.';err.classList.remove('hidden');return;}
-    if(!$('#delete-profile-confirm').checked){err.textContent='Marque a confirmação para excluir.';err.classList.remove('hidden');return;}
-    const id=p.id;
+  saveBtn.onclick=async()=>{
+    if(!profileHasPassword(p)){toast('Cadastre uma senha antes ou use o ADM');return;}
+    if(hashPassword($('#delete-profile-password').value)!==p.passwordHash){toast('Senha incorreta');return;}
+    if(!$('#delete-profile-confirm').checked){toast('Marque a confirmação');return;}
+    const ok=await commitProfilesDirect(profiles.filter(x=>x.id!==p.id));
+    if(!ok)return;
+    activeProfile=null;
+    localStorage.setItem('igreja_active_profile', JSON.stringify(null));
     closeModal();
-    removeProfileById(id);
+    $('#app')?.classList.add('hidden');
+    $('#profile-screen')?.classList.remove('hidden');
+    renderProfiles();
+    toast('Perfil excluído');
   };
-  $('#delete-profile-password')?.focus();
   icons();
 }
+
 function openAdminProfilesModal(){
-  if(!isAdminProfile()){toast('Apenas o ADM pode gerenciar perfis');return;}
   resetModalSaveButton();
+  const adm=currentProfile();
+  if(!isAdminProfile(adm)){toast('Apenas o ADM pode gerenciar perfis');return;}
   $('#modal-title').textContent='Gerenciar perfis';
-  const otherProfiles=profiles.filter(p=>p.id!==ADMIN_PROFILE_ID);
+  const list=profiles.filter(p=>p.id!==ADMIN_PROFILE_ID);
   $('#modal-form').innerHTML=`
-    <div class="sm:col-span-2 rounded-xl p-3 card2 text-sm muted">
-      O ADM pode excluir perfis de teste sem precisar da senha do usuário. O perfil ADM é protegido e não pode ser excluído.
+    <div class="sm:col-span-2 rounded-xl p-3 card2">
+      <p class="font-semibold flex items-center gap-2"><i data-lucide="shield"></i> Área do ADM</p>
+      <p class="muted text-sm mt-1">O ADM pode excluir perfis comuns sem precisar da senha do usuário. O perfil ADM é fixo e não pode ser excluído.</p>
     </div>
-    <div id="admin-profile-list" class="sm:col-span-2 space-y-2">
-      ${otherProfiles.length?otherProfiles.map(p=>`
-        <div class="card2 rounded-xl p-3 flex items-center gap-3" data-profile-id="${esc(p.id)}">
-          <div class="w-10 h-10 rounded-full overflow-hidden card2 shrink-0">${avatarImg(p.avatar,'av-img')}</div>
-          <div class="min-w-0 flex-1"><p class="font-semibold truncate">${esc(p.name||'Sem nome')}</p><p class="muted text-xs truncate">${esc((p.role||'')+(p.ministry?' · '+p.ministry:''))}</p></div>
-          <button class="admin-delete-profile rounded-lg px-3 py-2 text-sm font-semibold" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><i data-lucide="trash-2" style="width:16px;height:16px;display:inline"></i> Excluir</button>
+    <div class="sm:col-span-2 space-y-2" id="admin-profile-list">
+      ${list.length?list.map(p=>`
+        <div class="card2 rounded-xl p-3 flex items-center justify-between gap-3" data-profile-id="${esc(p.id)}">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full overflow-hidden shrink-0">${avatarImg(p.avatar,'av-img')}</div>
+            <div class="min-w-0"><p class="font-medium truncate">${esc(p.name||'Sem nome')}</p><p class="muted text-xs truncate">${esc((p.role||'')+(p.ministry?' · '+p.ministry:''))}</p></div>
+          </div>
+          <button type="button" class="admin-delete-profile rounded-lg px-3 py-2 text-sm font-semibold shrink-0" style="color:#ff6b6b;border:1px solid rgba(255,107,107,.3)"><i data-lucide="trash-2" style="width:16px;height:16px;display:inline"></i> Excluir</button>
         </div>`).join(''):'<p class="muted text-sm">Nenhum perfil comum cadastrado.</p>'}
     </div>`;
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
-  const saveBtn=$('#modal-save');
-  saveBtn.textContent='Fechar';
-  saveBtn.onclick=()=>closeModal();
+  $('#modal-save').innerHTML='<span>Fechar</span>';
+  $('#modal-save').onclick=closeModal;
   document.querySelectorAll('.admin-delete-profile').forEach(btn=>{
-    btn.onclick=(ev)=>{
-      const row=ev.currentTarget.closest('[data-profile-id]');
+    btn.onclick=async()=>{
+      const row=btn.closest('[data-profile-id]');
       const id=row?.dataset.profileId;
       const prof=profiles.find(p=>p.id===id);
-      if(!prof)return;
+      if(!prof || prof.id===ADMIN_PROFILE_ID)return;
       if(!confirm(`Excluir o perfil "${prof.name||'Sem nome'}"?`))return;
-      removeProfileById(id);
-      openAdminProfilesModal();
+      const ok=await commitProfilesDirect(profiles.filter(p=>p.id!==id));
+      if(!ok)return;
+      row.remove();
+      renderProfiles();
+      refreshSettingsUI();
+      toast('Perfil excluído pelo ADM');
+      if(!document.querySelector('#admin-profile-list [data-profile-id]')) $('#admin-profile-list').innerHTML='<p class="muted text-sm">Nenhum perfil comum cadastrado.</p>';
     };
   });
   icons();
