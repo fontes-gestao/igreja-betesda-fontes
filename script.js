@@ -1567,8 +1567,35 @@ function fieldHtml(f){
   let inner;
   if(f.type==='textarea')inner=`<textarea id="fld-${f.k}" rows="2" class="w-full rounded-xl px-3 py-2">${esc(f.v||'')}</textarea>`;
   else if(f.type==='select')inner=`<select id="fld-${f.k}" class="w-full rounded-xl px-3 py-2">${f.opts.map(o=>`<option ${o===f.v?'selected':''}>${o}</option>`).join('')}</select>`;
+  else if(f.type==='avatar'){
+    const avatars=getAvatars();
+    const selected=f.v || avatars[0] || '';
+    inner=`<div data-avatar-field="${f.k}" class="space-y-3">
+      <input id="fld-${f.k}" type="hidden" value="${esc(selected)}">
+      <div class="flex items-center gap-3">
+        <div class="w-16 h-16 rounded-full overflow-hidden card2 shrink-0" data-avatar-preview>${avatarImg(selected,'av-img')}</div>
+        <p class="muted text-sm">Escolha o avatar que vai aparecer no cadastro do membro.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">${avatars.map(a=>`<button type="button" class="avatar-opt w-11 h-11 ${a===selected?'sel':''}" data-avatar-option="${esc(a)}">${avatarImg(a,'av-img')}</button>`).join('')}</div>
+    </div>`;
+  }
   else inner=`<input id="fld-${f.k}" type="${f.type||'text'}" value="${esc(f.v||'')}" class="w-full rounded-xl px-3 py-2">`;
   return `<div class="${wide}"><label for="fld-${f.k}" class="text-sm muted block mb-1">${f.l}</label>${inner}</div>`;
+}
+function bindAvatarFields(){
+  document.querySelectorAll('[data-avatar-field]').forEach(box=>{
+    const key=box.dataset.avatarField;
+    const input=$('#fld-'+key);
+    const preview=box.querySelector('[data-avatar-preview]');
+    box.querySelectorAll('[data-avatar-option]').forEach(btn=>{
+      btn.onclick=()=>{
+        const value=btn.dataset.avatarOption||'';
+        if(input)input.value=value;
+        if(preview)preview.innerHTML=avatarImg(value,'av-img');
+        box.querySelectorAll('[data-avatar-option]').forEach(b=>b.classList.toggle('sel',b===btn));
+      };
+    });
+  });
 }
 function resetModalSaveButton(){
   const saveBtn=$('#modal-save');
@@ -1582,8 +1609,9 @@ function openModal(title,fields,onsave){
   resetModalSaveButton();
   $('#modal-title').textContent=title;
   $('#modal-form').innerHTML=fields.map(fieldHtml).join('');
+  bindAvatarFields();
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
-  $('#modal-save').onclick=()=>{const vals={};fields.forEach(f=>vals[f.k]=$('#fld-'+f.k).value.trim());if(!vals[fields[0].k]){toast('Preencha o campo obrigatório');return;}const result=onsave(vals);if(result!==false)closeModal();};
+  $('#modal-save').onclick=()=>{const vals={};fields.forEach(f=>vals[f.k]=($('#fld-'+f.k)?.value||'').trim());if(!vals[fields[0].k]){toast('Preencha o campo obrigatório');return;}const result=onsave(vals);if(result!==false)closeModal();};
   icons();
 }
 function closeModal(){resetModalSaveButton();$('#modal').classList.add('hidden');$('#modal').classList.remove('flex');}
@@ -1591,13 +1619,16 @@ $('#modal-close').onclick=closeModal;$('#modal-cancel').onclick=closeModal;
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 
 function openMemberModal(m){m=m||{};openModal(m.id?'Editar Membro':'Novo Membro',[
-  {k:'name',l:'Nome *',v:m.name,wide:true},{k:'phone',l:'Telefone',v:m.phone},{k:'email',l:'E-mail',v:m.email,type:'email'},
+  {k:'name',l:'Nome *',v:m.name,wide:true},{k:'avatar',l:'Avatar do membro',v:m.avatar||getAvatars()[0],type:'avatar',wide:true},
+  {k:'phone',l:'Telefone',v:m.phone},{k:'email',l:'E-mail',v:m.email,type:'email'},
   {k:'ministry',l:'Ministério',v:m.ministry},{k:'role',l:'Cargo',v:m.role},{k:'birthDate',l:'Data de nascimento',v:m.birthDate,type:'date'},
   {k:'notes',l:'Observações',v:m.notes,type:'textarea',wide:true}
-],v=>{if(m.id)Object.assign(m,stampRecord(v));else {
-  const avs = getAvatars();
-  members.push(stampRecord({id:uid(),avatar:avs[Math.floor(Math.random()*avs.length)] || '',...v}));
-}LS.set('members',members);renderMembers();toast('Membro salvo');});}
+],v=>{
+  if(!v.avatar)v.avatar=getAvatars()[0]||'';
+  if(m.id)Object.assign(m,stampRecord(v));
+  else members.push(stampRecord({id:uid(),...v}));
+  LS.set('members',members);renderMembers();toast('Membro salvo');
+});}
 
 function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala',[
   {k:'type',l:'Tipo de escala',v:e.type||'geral',type:'select',opts:['geral','louvor','pregacao','lideranca']},
@@ -1706,7 +1737,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-escalas-domingos-v21';
+const APP_VERSION = '20260705-membro-avatar-v24';
 
 (function forceOneTimeCacheRefresh(){
   try{
