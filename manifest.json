@@ -2,7 +2,7 @@
   "name": "Betesda Fontes",
   "short_name": "Betesda",
   "description": "Sistema de Gestão da Igreja Betesda Fontes",
-  "id": "/",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

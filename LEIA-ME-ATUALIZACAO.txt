@@ -1,14 +1,33 @@
-Atualização: Planos originais Betesda
+Atualização: sincronização segura + escalas mensais
 
-Incluído nesta versão:
-- Biblioteca de planos devocionais com capas próprias, inspirada no formato de apps devocionais, sem copiar planos ou capas de terceiros.
-- Planos originais: Plano Anual Betesda 2026, Vida de Oração, Fé que Permanece, Servir com Propósito, Família e Comunhão, Louvor e Adoração.
-- Progresso por plano com botão de concluir leitura.
-- Plano anual automático de julho a dezembro de 2026 mantido.
-- Devocional do dia, mural de avisos, pedidos de oração, financeiro, doações e notificações internas mantidos.
-- Cache/PWA atualizado para versão 20260704-planos-originais-v16.
+O que foi ajustado:
 
-Suba todo o conteúdo da pasta pwa na raiz do repositório do GitHub Pages.
+1. Sincronização/armazenamento
+- Antes, um navegador com dados antigos podia sobrescrever o documento do Firebase e fazer perfis, membros ou escalas sumirem.
+- Agora, antes de salvar na nuvem, o sistema mescla os dados locais com os dados já existentes no Firestore.
+- Perfis, membros, escalas, eventos, financeiro, doações, avisos, pedidos de oração e devocionais são preservados por ID.
+- Essa versão reduz drasticamente o risco de perda de dados quando mais de uma pessoa usa o sistema.
+
+2. Escalas
+- A tela Escalas agora tem três opções principais:
+  - Escala: Louvor
+  - Escala: Pregação
+  - Escala: Liderança
+- Cada opção permite criar escala mensal automaticamente.
+- Louvor: Ministro, Violão, Teclado, Vocais e Violão 2.
+- Pregação: Pregador.
+- Liderança: Oração Inicial, Oração Dízimos e Oração Final.
+
+3. Cache/PWA
+- Atualizada a versão do cache para forçar o navegador/app a buscar os arquivos novos.
+
+Observação importante:
+- Esta atualização não apaga os dados atuais do Firebase.
+- Ao publicar, abra o site, aguarde carregar e faça um teste criando um perfil, membro e escala em um navegador e verificando em outro.
 
 
-Atualização: ao clicar em um plano de leitura, ele agora abre como página própria com botão 'Voltar aos planos', evitando que o detalhe fique escondido abaixo da biblioteca.
+Atualização v19:
+- Escala Louvor: alterado 'Violão 2' para 'Bateria'.
+- Adicionado campo 'Cajon/Percussão' nas escalas de Louvor.
+- Botão 'Instalar aplicativo' fica visível também no Android quando o app ainda não está instalado.
+- Manifest ajustado para GitHub Pages e cache atualizado.

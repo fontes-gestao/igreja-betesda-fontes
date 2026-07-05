@@ -55,6 +55,48 @@ function markLocalDataChanged(){
 function remoteClientUpdatedAt(data){
   return Number(data?.clientUpdatedAt || 0) || 0;
 }
+
+
+// Mesclagem defensiva: evita que um navegador com dados antigos sobrescreva
+// perfis, membros, escalas ou lançamentos criados por outro dispositivo.
+// A fonte continua sendo Firestore, mas antes de salvar unimos os dados locais
+// com os dados já existentes na nuvem.
+const RECORD_ARRAY_KEYS = ['profiles','members','escalas','eventos','manut','financeiro','doacoes','devocionais','avisos','oracoes'];
+function recordUpdatedAt(item){
+  return Number(item?._updatedAt || item?.updatedAt || item?.createdAt || 0) || 0;
+}
+function mergeArrayById(remoteArr=[], localArr=[]){
+  const map=new Map();
+  const put=(item, source)=>{
+    if(!item || typeof item!=='object') return;
+    const key=String(item.id || item.email || item.name || JSON.stringify(item));
+    const next={...item};
+    const cur=map.get(key);
+    if(!cur){ map.set(key,next); return; }
+    const curTs=recordUpdatedAt(cur), nextTs=recordUpdatedAt(next);
+    if(nextTs>curTs) map.set(key,{...cur,...next});
+    else if(nextTs===curTs && source==='local') map.set(key,{...cur,...next});
+  };
+  (Array.isArray(remoteArr)?remoteArr:[]).forEach(x=>put(x,'remote'));
+  (Array.isArray(localArr)?localArr:[]).forEach(x=>put(x,'local'));
+  return Array.from(map.values()).filter(x=>!x._deleted);
+}
+function localCloudSnapshot(){
+  return {profiles,members,escalas,eventos,manut,financeiro,doacoes,devocionais,avisos,oracoes,settings,clientUpdatedAt:lastLocalWrite};
+}
+function mergeCloudPayload(remote={}, local={}){
+  const merged={...remote,...local};
+  RECORD_ARRAY_KEYS.forEach(k=>{
+    merged[k]=mergeArrayById(remote[k], local[k]);
+  });
+  merged.settings={...(remote.settings||{}),...(local.settings||{})};
+  merged.clientUpdatedAt=Math.max(remoteClientUpdatedAt(remote), remoteClientUpdatedAt(local), currentLocalUpdatedAt(), Date.now());
+  merged.updatedAt=serverTimestamp();
+  return merged;
+}
+function stampRecord(obj){
+  return {...obj,_updatedAt:Date.now()};
+}
 function isFreshLocalChange(){
   const t=currentLocalUpdatedAt();
   return !!t && (Date.now()-t) < 120000; // protege alterações feitas nos últimos 2 minutos
@@ -96,8 +138,11 @@ function scheduleCloudSave(){
 async function saveCloudData(){
   if(!cloudLoaded) return;
   try{
-    await setDoc(cloudDoc, collectCloudData(), {merge:true});
-    console.info('Dados salvos na nuvem.');
+    const localPayload = collectCloudData();
+    const snap = await getDoc(cloudDoc);
+    const payload = snap.exists() ? mergeCloudPayload(snap.data(), localPayload) : localPayload;
+    await setDoc(cloudDoc, payload, {merge:false});
+    console.info('Dados salvos na nuvem com mesclagem segura.');
   }catch(e){
     console.error('Erro ao salvar no Firebase:', e);
     toast('Erro ao salvar na nuvem');
@@ -117,17 +162,18 @@ function applyCloudData(data){
     return;
   }
   applyingRemoteData=true;
-  profiles=Array.isArray(data.profiles)?data.profiles:[];
-  members=Array.isArray(data.members)?data.members:[];
-  escalas=Array.isArray(data.escalas)?data.escalas:[];
-  eventos=Array.isArray(data.eventos)?data.eventos:[];
-  manut=Array.isArray(data.manut)?data.manut:[];
-  financeiro=Array.isArray(data.financeiro)?data.financeiro:[];
-  doacoes=Array.isArray(data.doacoes)?data.doacoes:[];
-  devocionais=Array.isArray(data.devocionais)?data.devocionais:[];
-  avisos=Array.isArray(data.avisos)?data.avisos:[];
-  oracoes=Array.isArray(data.oracoes)?data.oracoes:[];
-  settings=(data.settings&&typeof data.settings==='object')?data.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
+  const mergedRemote = mergeCloudPayload(data, localCloudSnapshot());
+  profiles=Array.isArray(mergedRemote.profiles)?mergedRemote.profiles:[];
+  members=Array.isArray(mergedRemote.members)?mergedRemote.members:[];
+  escalas=Array.isArray(mergedRemote.escalas)?mergedRemote.escalas:[];
+  eventos=Array.isArray(mergedRemote.eventos)?mergedRemote.eventos:[];
+  manut=Array.isArray(mergedRemote.manut)?mergedRemote.manut:[];
+  financeiro=Array.isArray(mergedRemote.financeiro)?mergedRemote.financeiro:[];
+  doacoes=Array.isArray(mergedRemote.doacoes)?mergedRemote.doacoes:[];
+  devocionais=Array.isArray(mergedRemote.devocionais)?mergedRemote.devocionais:[];
+  avisos=Array.isArray(mergedRemote.avisos)?mergedRemote.avisos:[];
+  oracoes=Array.isArray(mergedRemote.oracoes)?mergedRemote.oracoes:[];
+  settings=(mergedRemote.settings&&typeof mergedRemote.settings==='object')?mergedRemote.settings:{churchName:'Igreja Betesda Fontes',theme:'dark'};
   const adminChanged=ensureAdminProfile(false);
   CLOUD_KEYS.forEach(k=>localStorage.setItem('igreja_'+k,JSON.stringify({profiles,members,escalas,eventos,manut,financeiro,doacoes,devocionais,avisos,oracoes,settings}[k])));
   if(remoteTs){
@@ -143,7 +189,7 @@ function refreshAfterCloudUpdate(){
   applyTheme();
   if(activeProfile && !profiles.find(p=>p.id===activeProfile)){
     activeProfile=null;
-    LS.set('active_profile',null);
+    localStorage.setItem('igreja_active_profile', JSON.stringify(null));
     $('#app')?.classList.add('hidden');
     $('#profile-screen')?.classList.remove('hidden');
   }
@@ -208,6 +254,7 @@ let profiles=LS.get('profiles',[]),activeProfile=LS.get('active_profile',null);
 let members=LS.get('members',[]),escalas=LS.get('escalas',[]),eventos=LS.get('eventos',[]),manut=LS.get('manut',[]),financeiro=LS.get('financeiro',[]),doacoes=LS.get('doacoes',[]),devocionais=LS.get('devocionais',[]),avisos=LS.get('avisos',[]),oracoes=LS.get('oracoes',[]);
 let settings=LS.get('settings',{churchName:'Igreja Betesda Fontes',theme:'dark'});
 let sidebarCollapsed=LS.get('sidebar_collapsed',false);
+let escalaFilter='todas';
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),2200);}
 function icons(){lucide.createIcons();}
@@ -376,10 +423,10 @@ $('#profile-form').onsubmit=e=>{
   const pass2=$('#pf-password-confirm').value;
   if(pass.length<4){toast('A senha precisa ter pelo menos 4 caracteres');return;}
   if(pass!==pass2){toast('As senhas não conferem');return;}
-  const p={id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)};
+  const p=stampRecord({id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)});
   profiles.push(p);LS.set('profiles',profiles);activeProfile=p.id;LS.set('active_profile',p.id);$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');openApp();saveCloudData();
 };
-$('#switch-profile').onclick=()=>{activeProfile=null;LS.set('active_profile',null);$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
+$('#switch-profile').onclick=()=>{activeProfile=null;localStorage.setItem('igreja_active_profile', JSON.stringify(null));$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
 $('#edit-profile').onclick=()=>openEditProfileModal();
 $('#topbar-user-profile') && ($('#topbar-user-profile').onclick=()=>openEditProfileModal());
 /* APP */
@@ -616,26 +663,99 @@ $('#member-search').oninput=renderMembers;
 $('#add-member').onclick=()=>openMemberModal();
 
 /* ESCALAS */
+function escalaTipoLabel(t){
+  return ({louvor:'Louvor',pregacao:'Pregação',lideranca:'Liderança',geral:'Geral'}[t||'geral'] || 'Geral');
+}
+function ensureEscalaTools(){
+  const list=$('#escala-list');
+  if(!list || $('#escala-tools')) return;
+  const wrap=document.createElement('div');
+  wrap.id='escala-tools';
+  wrap.className='card rounded-2xl p-4 mb-4';
+  wrap.innerHTML=`<div class="flex flex-wrap items-center justify-between gap-3 mb-3"><div><h3 class="font-bold">Tipos de escala</h3><p class="muted text-sm">Crie escalas mensais separadas para Louvor, Pregação e Liderança.</p></div></div>
+  <div class="grid sm:grid-cols-3 gap-3 mb-4">
+    <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="louvor"><div class="font-semibold flex items-center gap-2"><i data-lucide="music"></i>Escala: Louvor</div><p class="muted text-xs mt-1">Ministro, violão, teclado, vocais, bateria e cajon/percussão</p></button>
+    <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="pregacao"><div class="font-semibold flex items-center gap-2"><i data-lucide="book-open"></i>Escala: Pregação</div><p class="muted text-xs mt-1">Pregador por data do mês</p></button>
+    <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="lideranca"><div class="font-semibold flex items-center gap-2"><i data-lucide="hand"></i>Escala: Liderança</div><p class="muted text-xs mt-1">Oração inicial, dízimos e final</p></button>
+  </div>
+  <div class="flex flex-wrap gap-2 text-sm">
+    ${['todas','louvor','pregacao','lideranca','geral'].map(t=>`<button class="escala-filter px-3 py-2 rounded-xl ${escalaFilter===t?'accent-grad text-white':'card2'}" data-filter="${t}">${t==='todas'?'Todas':escalaTipoLabel(t)}</button>`).join('')}
+  </div>`;
+  list.parentNode.insertBefore(wrap,list);
+  wrap.querySelectorAll('[data-month]').forEach(b=>b.onclick=()=>openEscalaMensalModal(b.dataset.month));
+  wrap.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{escalaFilter=b.dataset.filter;$('#escala-tools')?.remove();renderEscalas();});
+  icons();
+}
+function escalaSearchText(e){
+  return [e.date,e.time,e.type,e.worship,e.preacher,e.openingPrayer,e.tithePrayer,e.finalPrayer,e.reception,e.media,e.sound,e.minister,e.acousticGuitar,e.keyboard,e.vocals,e.drums,e.guitar2,e.cajonPercussion,e.notes].filter(Boolean).join(' ').toLowerCase();
+}
+function escalaRows(e){
+  const row=(l,v)=>v?`<p class="muted"><span class="role-di">${l}:</span> ${esc(v)}</p>`:'';
+  if(e.type==='louvor') return `${row('Ministro',e.minister||e.worship)}${row('Violão',e.acousticGuitar)}${row('Teclado',e.keyboard)}${row('Vocais',e.vocals)}${row('Bateria',e.drums||e.guitar2)}${row('Cajon/Percussão',e.cajonPercussion)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  if(e.type==='pregacao') return `${row('Pregador',e.preacher)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  if(e.type==='lideranca') return `${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Oração final',e.finalPrayer)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  return `${row('Louvor',e.worship)}${row('Pregador',e.preacher)}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Recepção',e.reception)}${row('Mídia',e.media)}${row('Som',e.sound)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+}
 function renderEscalas(){
+  ensureEscalaTools();
   const q=$('#escala-search').value.toLowerCase();
-  const list=escalas.filter(e=>(e.date+e.preacher+e.worship).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
+  const list=escalas.filter(e=>{
+    const type=e.type||'geral';
+    const okFilter=escalaFilter==='todas'||type===escalaFilter;
+    return okFilter && escalaSearchText(e).includes(q);
+  }).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const c=$('#escala-list');c.innerHTML='';$('#escala-empty').classList.toggle('hidden',list.length>0);
   list.forEach(e=>{
     const d=document.createElement('div');d.className='card rounded-2xl p-4';
-    const row=(l,v)=>v?`<p class="muted"><span class="role-di">${l}:</span> ${esc(v)}</p>`:'';
+    const type=e.type||'geral';
     d.innerHTML=`<div class="flex items-start justify-between gap-2 mb-2">
-      <p class="font-semibold flex items-center gap-2"><i data-lucide="calendar" style="width:16px;height:16px;color:var(--accent)"></i>${fmtDate(e.date)} · ${esc(e.time||'')}</p>
+      <div><p class="font-semibold flex items-center gap-2"><i data-lucide="calendar" style="width:16px;height:16px;color:var(--accent)"></i>${fmtDate(e.date)} · ${esc(e.time||'')}</p><p class="muted text-xs mt-1">Escala: ${esc(escalaTipoLabel(type))}</p></div>
       <div class="flex gap-1 shrink-0"><button class="dup muted hover:text-[var(--accent)]" title="Duplicar" aria-label="Duplicar"><i data-lucide="copy"></i></button><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div>
-      <div class="text-sm space-y-1">${row('Louvor',e.worship)}${row('Pregador',e.preacher)}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Recepção',e.reception)}${row('Mídia',e.media)}${row('Som',e.sound)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}</div>`;
+      <div class="text-sm space-y-1">${escalaRows(e)}</div>`;
     d.querySelector('.ed').onclick=()=>openEscalaModal(e);
-    d.querySelector('.dup').onclick=()=>{escalas.push({...e,id:uid()});LS.set('escalas',escalas);renderEscalas();toast('Escala duplicada');};
-    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{escalas=escalas.filter(x=>x.id!==e.id);LS.set('escalas',escalas);renderEscalas();toast('Escala excluída');});
+    d.querySelector('.dup').onclick=()=>{escalas.push(stampRecord({...e,id:uid()}));LS.set('escalas',escalas);renderEscalas();toast('Escala duplicada');};
+    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{escalas=escalas.filter(x=>x.id!==e.id);markLocalDataChanged();LS.set('escalas',escalas);renderEscalas();toast('Escala excluída');});
     c.appendChild(d);
   });
   icons();
 }
 $('#escala-search').oninput=renderEscalas;
 $('#add-escala').onclick=()=>openEscalaModal();
+
+function openEscalaMensalModal(tipo){
+  const label=escalaTipoLabel(tipo);
+  const base=[
+    {k:'month',l:'Mês *',type:'month',v:new Date().toISOString().slice(0,7)},
+    {k:'weekday',l:'Dia da semana *',type:'select',opts:['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']},
+    {k:'time',l:'Horário',type:'time',v:'19:30'}
+  ];
+  const extra={
+    louvor:[{k:'minister',l:'Ministro',wide:true},{k:'acousticGuitar',l:'Violão'},{k:'keyboard',l:'Teclado'},{k:'vocals',l:'Vocais',wide:true},{k:'drums',l:'Bateria'},{k:'cajonPercussion',l:'Cajon/Percussão'}],
+    pregacao:[{k:'preacher',l:'Pregador',wide:true}],
+    lideranca:[{k:'openingPrayer',l:'Oração Inicial'},{k:'tithePrayer',l:'Oração Dízimos'},{k:'finalPrayer',l:'Oração Final',wide:true}]
+  }[tipo] || [];
+  openModal('Criar escala mensal: '+label,[...base,...extra,{k:'notes',l:'Observações',type:'textarea',wide:true}],v=>{
+    if(!v.month){toast('Selecione o mês');return;}
+    const days=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    const weekday=days.indexOf(v.weekday);
+    const [year,month]=v.month.split('-').map(Number);
+    const created=[];
+    const last=new Date(year,month,0).getDate();
+    for(let day=1;day<=last;day++){
+      const dt=new Date(year,month-1,day);
+      if(dt.getDay()===weekday){
+        const date=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const item=stampRecord({id:uid(),type:tipo,date,time:v.time,notes:v.notes});
+        if(tipo==='louvor') Object.assign(item,{minister:v.minister,acousticGuitar:v.acousticGuitar,keyboard:v.keyboard,vocals:v.vocals,drums:v.drums,cajonPercussion:v.cajonPercussion,worship:v.minister});
+        if(tipo==='pregacao') Object.assign(item,{preacher:v.preacher});
+        if(tipo==='lideranca') Object.assign(item,{openingPrayer:v.openingPrayer,tithePrayer:v.tithePrayer,finalPrayer:v.finalPrayer});
+        created.push(item);
+      }
+    }
+    if(!created.length){toast('Nenhuma data encontrada para esse dia da semana');return;}
+    escalas.push(...created);LS.set('escalas',escalas);escalaFilter=tipo;$('#escala-tools')?.remove();renderEscalas();toast(`${created.length} escala(s) criadas para ${label}`);
+  });
+}
 
 /* EVENTOS */
 function renderEventos(){
@@ -1275,31 +1395,34 @@ function openMemberModal(m){m=m||{};openModal(m.id?'Editar Membro':'Novo Membro'
   {k:'name',l:'Nome *',v:m.name,wide:true},{k:'phone',l:'Telefone',v:m.phone},{k:'email',l:'E-mail',v:m.email,type:'email'},
   {k:'ministry',l:'Ministério',v:m.ministry},{k:'role',l:'Cargo',v:m.role},{k:'birthDate',l:'Data de nascimento',v:m.birthDate,type:'date'},
   {k:'notes',l:'Observações',v:m.notes,type:'textarea',wide:true}
-],v=>{if(m.id)Object.assign(m,v);else {
+],v=>{if(m.id)Object.assign(m,stampRecord(v));else {
   const avs = getAvatars();
-  members.push({id:uid(),avatar:avs[Math.floor(Math.random()*avs.length)] || '',...v});
+  members.push(stampRecord({id:uid(),avatar:avs[Math.floor(Math.random()*avs.length)] || '',...v}));
 }LS.set('members',members);renderMembers();toast('Membro salvo');});}
 
 function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala',[
+  {k:'type',l:'Tipo de escala',v:e.type||'geral',type:'select',opts:['geral','louvor','pregacao','lideranca']},
   {k:'date',l:'Data *',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
-  {k:'worship',l:'Louvor',v:e.worship},{k:'preacher',l:'Pregador',v:e.preacher},
-  {k:'openingPrayer',l:'Oração inicial',v:e.openingPrayer},{k:'tithePrayer',l:'Oração dos dízimos',v:e.tithePrayer},
+  {k:'worship',l:'Louvor / Ministro',v:e.worship||e.minister},{k:'preacher',l:'Pregador',v:e.preacher},
+  {k:'openingPrayer',l:'Oração inicial',v:e.openingPrayer},{k:'tithePrayer',l:'Oração dos dízimos',v:e.tithePrayer},{k:'finalPrayer',l:'Oração final',v:e.finalPrayer},
+  {k:'acousticGuitar',l:'Violão',v:e.acousticGuitar},{k:'keyboard',l:'Teclado',v:e.keyboard},
+  {k:'vocals',l:'Vocais',v:e.vocals},{k:'drums',l:'Bateria',v:e.drums||e.guitar2},{k:'cajonPercussion',l:'Cajon/Percussão',v:e.cajonPercussion},
   {k:'reception',l:'Recepção',v:e.reception},{k:'media',l:'Mídia',v:e.media},
   {k:'sound',l:'Som',v:e.sound},{k:'notes',l:'Observações',v:e.notes,type:'textarea',wide:true}
-],v=>{if(e.id)Object.assign(e,v);else escalas.push({id:uid(),...v});LS.set('escalas',escalas);renderEscalas();toast('Escala salva');});}
+],v=>{v.minister=v.worship;if(e.id)Object.assign(e,stampRecord(v));else escalas.push(stampRecord({id:uid(),...v}));LS.set('escalas',escalas);renderEscalas();toast('Escala salva');});}
 
 function openEventoModal(e){e=e||{};openModal(e.id?'Editar Evento':'Novo Evento',[
   {k:'name',l:'Nome *',v:e.name,wide:true},{k:'date',l:'Data',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
   {k:'location',l:'Local',v:e.location},{k:'responsible',l:'Responsável',v:e.responsible},
   {k:'description',l:'Descrição',v:e.description,type:'textarea',wide:true}
-],v=>{if(e.id)Object.assign(e,v);else eventos.push({id:uid(),...v});LS.set('eventos',eventos);renderEventos();toast('Evento salvo');});}
+],v=>{if(e.id)Object.assign(e,stampRecord(v));else eventos.push(stampRecord({id:uid(),...v}));LS.set('eventos',eventos);renderEventos();toast('Evento salvo');});}
 
 function openManutModal(m){m=m||{};openModal(m.id?'Editar Manutenção':'Nova Manutenção',[
   {k:'title',l:'Título *',v:m.title,wide:true},{k:'location',l:'Local',v:m.location},{k:'responsible',l:'Responsável',v:m.responsible},
   {k:'priority',l:'Prioridade',v:m.priority||'Média',type:'select',opts:['Baixa','Média','Alta']},
   {k:'status',l:'Status',v:m.status||'Pendente',type:'select',opts:['Pendente','Concluído']},
   {k:'notes',l:'Observações',v:m.notes,type:'textarea',wide:true}
-],v=>{if(m.id)Object.assign(m,v);else manut.push({id:uid(),...v});LS.set('manut',manut);renderManut();toast('Manutenção salva');});}
+],v=>{if(m.id)Object.assign(m,stampRecord(v));else manut.push(stampRecord({id:uid(),...v}));LS.set('manut',manut);renderManut();toast('Manutenção salva');});}
 
 
 function openEditProfileModal(){
@@ -1339,7 +1462,7 @@ function openEditProfileModal(){
         if(newPass!==newPass2){toast('As novas senhas não conferem');return;}
         p.passwordHash=hashPassword(newPass);
       }
-      p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();p.birthDate=$('#edit-birth').value;
+      p.ministry=$('#edit-ministry').value.trim();p.role=$('#edit-role').value.trim();p.birthDate=$('#edit-birth').value;p._updatedAt=Date.now();
     } else {
       p.passwordHash=ADMIN_PASSWORD_HASH;p.ministry='Sistema';p.role='Administrador';p.id=ADMIN_PROFILE_ID;p.isAdmin=true;
     }
@@ -1493,14 +1616,21 @@ function showIosInstallInstructions(){
 }
 
 function showGenericInstallInstructions(){
-  toast('Use o menu do navegador → "Instalar aplicativo" ou "Adicionar à tela inicial"');
+  toast('No Android: menu ⋮ do navegador → Instalar app ou Adicionar à tela inicial');
 }
 
-// No iPhone/iPad (Safari não dispara beforeinstallprompt), mostra o botão
-// e, ao tocar, exibe a instrução manual de "Compartilhar → Adicionar à Tela de Início".
+function shouldShowInstallHelper(){
+  return installBtn && !isStandalone();
+}
+
+// Mostra o botão de instalação também no Android/Chrome.
+// O evento beforeinstallprompt pode demorar ou não aparecer em alguns aparelhos;
+// quando não houver prompt automático, o botão mostra instruções manuais.
 document.addEventListener('DOMContentLoaded', () => {
-  if (isIos() && !isStandalone() && installBtn) {
-    installBtn.classList.remove('hidden');
+  if (shouldShowInstallHelper()) {
+    setTimeout(() => {
+      if (shouldShowInstallHelper()) installBtn.classList.remove('hidden');
+    }, 900);
   }
 });
 
