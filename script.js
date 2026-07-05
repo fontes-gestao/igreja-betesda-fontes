@@ -722,39 +722,114 @@ function renderEscalas(){
 $('#escala-search').oninput=renderEscalas;
 $('#add-escala').onclick=()=>openEscalaModal();
 
-function openEscalaMensalModal(tipo){
-  const label=escalaTipoLabel(tipo);
-  const base=[
-    {k:'month',l:'Mês *',type:'month',v:new Date().toISOString().slice(0,7)},
-    {k:'weekday',l:'Dia da semana *',type:'select',opts:['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']},
-    {k:'time',l:'Horário',type:'time',v:'19:30'}
-  ];
-  const extra={
-    louvor:[{k:'minister',l:'Ministro',wide:true},{k:'acousticGuitar',l:'Violão'},{k:'keyboard',l:'Teclado'},{k:'vocals',l:'Vocais',wide:true},{k:'drums',l:'Bateria'},{k:'cajonPercussion',l:'Cajon/Percussão'}],
-    pregacao:[{k:'preacher',l:'Pregador',wide:true}],
-    lideranca:[{k:'openingPrayer',l:'Oração Inicial'},{k:'tithePrayer',l:'Oração Dízimos'},{k:'finalPrayer',l:'Oração Final',wide:true}]
-  }[tipo] || [];
-  openModal('Criar escala mensal: '+label,[...base,...extra,{k:'notes',l:'Observações',type:'textarea',wide:true}],v=>{
-    if(!v.month){toast('Selecione o mês');return;}
-    const days=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-    const weekday=days.indexOf(v.weekday);
-    const [year,month]=v.month.split('-').map(Number);
-    const created=[];
-    const last=new Date(year,month,0).getDate();
-    for(let day=1;day<=last;day++){
-      const dt=new Date(year,month-1,day);
-      if(dt.getDay()===weekday){
-        const date=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const item=stampRecord({id:uid(),type:tipo,date,time:v.time,notes:v.notes});
-        if(tipo==='louvor') Object.assign(item,{minister:v.minister,acousticGuitar:v.acousticGuitar,keyboard:v.keyboard,vocals:v.vocals,drums:v.drums,cajonPercussion:v.cajonPercussion,worship:v.minister});
-        if(tipo==='pregacao') Object.assign(item,{preacher:v.preacher});
-        if(tipo==='lideranca') Object.assign(item,{openingPrayer:v.openingPrayer,tithePrayer:v.tithePrayer,finalPrayer:v.finalPrayer});
-        created.push(item);
-      }
+function sundayDatesOfMonth(monthValue){
+  if(!monthValue) return [];
+  const [year,month]=monthValue.split('-').map(Number);
+  if(!year || !month) return [];
+  const last=new Date(year,month,0).getDate();
+  const dates=[];
+  for(let day=1; day<=last; day++){
+    const dt=new Date(year,month-1,day);
+    if(dt.getDay()===0){
+      const date=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      dates.push(date);
     }
-    if(!created.length){toast('Nenhuma data encontrada para esse dia da semana');return;}
-    escalas.push(...created);LS.set('escalas',escalas);escalaFilter=tipo;$('#escala-tools')?.remove();renderEscalas();toast(`${created.length} escala(s) criadas para ${label}`);
-  });
+  }
+  return dates;
+}
+function escalaMonthlyRoleFields(tipo){
+  if(tipo==='louvor') return [
+    ['minister','Ministro'],
+    ['acousticGuitar','Violão'],
+    ['keyboard','Teclado'],
+    ['vocals','Vocais'],
+    ['drums','Bateria'],
+    ['cajonPercussion','Cajon/Percussão']
+  ];
+  if(tipo==='pregacao') return [
+    ['preacher','Pregador']
+  ];
+  if(tipo==='lideranca') return [
+    ['openingPrayer','Oração Inicial'],
+    ['tithePrayer','Oração Dízimos'],
+    ['finalPrayer','Oração Final']
+  ];
+  return [];
+}
+function openEscalaMensalModal(tipo){
+  resetModalSaveButton();
+  const label=escalaTipoLabel(tipo);
+  const monthNow=new Date().toISOString().slice(0,7);
+  const saveBtn=$('#modal-save');
+  $('#modal-title').textContent='Criar escala mensal: '+label;
+  saveBtn.innerHTML='<span class="canva-text">Salvar escalas do mês</span>';
+  $('#modal-form').innerHTML=`
+    <div class="sm:col-span-2 card2 rounded-2xl p-3 mb-1">
+      <p class="font-semibold">Escala mensal por domingos</p>
+      <p class="muted text-sm mt-1">Selecione o mês. O sistema monta automaticamente todos os domingos e você preenche pessoas diferentes para cada culto.</p>
+    </div>
+    <div>
+      <label for="escala-month-field" class="text-sm muted block mb-1">Mês *</label>
+      <input id="escala-month-field" type="month" value="${monthNow}" class="w-full rounded-xl px-3 py-2">
+    </div>
+    <div>
+      <label for="escala-time-field" class="text-sm muted block mb-1">Horário padrão</label>
+      <input id="escala-time-field" type="time" value="19:30" class="w-full rounded-xl px-3 py-2">
+    </div>
+    <div id="monthly-sundays-wrap" class="sm:col-span-2 space-y-3 mt-2"></div>`;
+  const wrap=$('#monthly-sundays-wrap');
+  const fields=escalaMonthlyRoleFields(tipo);
+  const renderSundayBlocks=()=>{
+    const month=$('#escala-month-field').value;
+    const dates=sundayDatesOfMonth(month);
+    if(!dates.length){wrap.innerHTML='<p class="muted text-sm">Nenhum domingo encontrado para este mês.</p>';return;}
+    wrap.innerHTML=dates.map((date,idx)=>`
+      <div class="card rounded-2xl p-4" data-sunday-index="${idx}" data-date="${date}">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div>
+            <p class="font-bold">Domingo ${fmtDate(date)}</p>
+            <p class="muted text-xs">${label}</p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-full card2">${idx+1}º domingo</span>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          ${fields.map(([key,roleLabel])=>`
+            <div class="${fields.length===1?'sm:col-span-2':''}">
+              <label class="text-sm muted block mb-1" for="monthly-${idx}-${key}">${roleLabel}</label>
+              <input id="monthly-${idx}-${key}" data-role-key="${key}" class="w-full rounded-xl px-3 py-2" placeholder="Nome">
+            </div>`).join('')}
+          <div class="sm:col-span-2">
+            <label class="text-sm muted block mb-1" for="monthly-${idx}-notes">Observações</label>
+            <textarea id="monthly-${idx}-notes" data-role-key="notes" rows="2" class="w-full rounded-xl px-3 py-2" placeholder="Opcional"></textarea>
+          </div>
+        </div>
+      </div>`).join('');
+  };
+  renderSundayBlocks();
+  $('#escala-month-field').onchange=renderSundayBlocks;
+  $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
+  saveBtn.onclick=()=>{
+    const month=$('#escala-month-field').value;
+    const time=$('#escala-time-field').value || '19:30';
+    if(!month){toast('Selecione o mês');return;}
+    const blocks=Array.from(document.querySelectorAll('#monthly-sundays-wrap [data-date]'));
+    if(!blocks.length){toast('Nenhum domingo encontrado');return false;}
+    const created=blocks.map(block=>{
+      const item=stampRecord({id:uid(),type:tipo,date:block.dataset.date,time});
+      fields.forEach(([key])=>{item[key]=(block.querySelector(`[data-role-key="${key}"]`)?.value||'').trim();});
+      item.notes=(block.querySelector('[data-role-key="notes"]')?.value||'').trim();
+      if(tipo==='louvor') item.worship=item.minister || '';
+      return item;
+    });
+    escalas.push(...created);
+    LS.set('escalas',escalas);
+    escalaFilter=tipo;
+    $('#escala-tools')?.remove();
+    renderEscalas();
+    toast(`${created.length} domingos criados para ${label}`);
+    closeModal();
+  };
+  icons();
 }
 
 /* EVENTOS */
@@ -1507,7 +1582,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260704-planos-detalhe-v17';
+const APP_VERSION = '20260705-escalas-domingos-v20';
 
 (function forceOneTimeCacheRefresh(){
   try{

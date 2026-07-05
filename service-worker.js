@@ -1,12 +1,12 @@
 /* ============================================================
    Service Worker - Betesda Fontes (PWA)
-   Versão 20260705-sync-escalas-v18
+   Versão 20260705-escalas-domingos-v20
    - Corrige cache preso em iPhone/Android/Chrome.
    - HTML, JS, CSS e manifest sempre tentam buscar a versão nova primeiro.
    - Imagens e ícones continuam em cache para o PWA funcionar melhor offline.
    ============================================================ */
 
-const CACHE_VERSION = '20260705-escalas-android-install-v19';
+const CACHE_VERSION = '20260705-escalas-domingos-v20';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [

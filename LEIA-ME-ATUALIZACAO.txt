@@ -13,8 +13,8 @@ O que foi ajustado:
   - Escala: Louvor
   - Escala: Pregação
   - Escala: Liderança
-- Cada opção permite criar escala mensal automaticamente.
-- Louvor: Ministro, Violão, Teclado, Vocais e Violão 2.
+- Cada opção permite criar escala mensal automaticamente, criando um bloco para cada domingo do mês selecionado.
+- Louvor: Ministro, Violão, Teclado, Vocais, Bateria e Cajon/Percussão.
 - Pregação: Pregador.
 - Liderança: Oração Inicial, Oração Dízimos e Oração Final.
 
@@ -31,3 +31,11 @@ Atualização v19:
 - Adicionado campo 'Cajon/Percussão' nas escalas de Louvor.
 - Botão 'Instalar aplicativo' fica visível também no Android quando o app ainda não está instalado.
 - Manifest ajustado para GitHub Pages e cache atualizado.
+
+
+Atualização adicional:
+- A criação de escala mensal agora monta automaticamente todos os domingos do mês.
+- Cada domingo possui campos próprios, permitindo pessoas diferentes em cada culto.
+- Louvor inclui: Ministro, Violão, Teclado, Vocais, Bateria e Cajon/Percussão.
+- Pregação inclui Pregador por domingo.
+- Liderança inclui Oração Inicial, Oração Dízimos e Oração Final por domingo.
