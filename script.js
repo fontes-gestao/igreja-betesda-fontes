@@ -1582,7 +1582,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-escalas-domingos-v20';
+const APP_VERSION = '20260705-escalas-domingos-v21';
 
 (function forceOneTimeCacheRefresh(){
   try{
