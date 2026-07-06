@@ -59,3 +59,8 @@ Atualização v24:
 - Cadastro e edição de membros agora permite escolher o avatar manualmente.
 - Removida a escolha aleatória de foto ao criar membro.
 - Mantidas as correções de sincronização, escalas mensais por domingo e exclusão de perfil.
+
+
+Atualização v25:
+- O botão do popup de entrada no perfil foi alterado de 'Salvar' para 'Entrar'.
+- Cache/PWA atualizado para carregar a nova versão.

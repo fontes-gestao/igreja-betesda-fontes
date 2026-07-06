@@ -406,6 +406,8 @@ function openProfileLogin(p){
     if(hashPassword(v.password)!==p.passwordHash){toast('Senha incorreta');return false;}
     setActiveProfile(p.id);
   });
+  const loginBtn=$('#modal-save');
+  if(loginBtn) loginBtn.innerHTML='<span class="canva-text">Entrar</span>';
 }
 function renderAvatarOptions(){
   const w=$('#avatar-options');w.innerHTML='';
@@ -1737,7 +1739,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-membro-avatar-v24';
+const APP_VERSION = '20260705-login-entrar-v25';
 
 (function forceOneTimeCacheRefresh(){
   try{
