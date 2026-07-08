@@ -800,7 +800,7 @@ function ensureEscalaTools(){
   wrap.className='card rounded-2xl p-4 mb-4';
   wrap.innerHTML=`<div class="flex flex-wrap items-center justify-between gap-3 mb-3"><div><h3 class="font-bold">Tipos de escala</h3><p class="muted text-sm">Crie escalas mensais separadas para Louvor, Pregação e Liderança.</p></div></div>
   <div class="grid sm:grid-cols-3 gap-3 mb-4">
-    <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="louvor"><div class="font-semibold flex items-center gap-2"><i data-lucide="music"></i>Escala: Louvor</div><p class="muted text-xs mt-1">Ministro, violão, teclado, vocais, bateria e cajon/percussão</p></button>
+    <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="louvor"><div class="font-semibold flex items-center gap-2"><i data-lucide="music"></i>Escala: Louvor</div><p class="muted text-xs mt-1">Ministro, violão, guitarra, contrabaixo, teclado, vocais, bateria e cajon/percussão</p></button>
     <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="pregacao"><div class="font-semibold flex items-center gap-2"><i data-lucide="book-open"></i>Escala: Pregação</div><p class="muted text-xs mt-1">Pregador por data do mês</p></button>
     <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="lideranca"><div class="font-semibold flex items-center gap-2"><i data-lucide="hand"></i>Escala: Liderança</div><p class="muted text-xs mt-1">Oração inicial, dízimos e final</p></button>
   </div>
@@ -813,11 +813,11 @@ function ensureEscalaTools(){
   icons();
 }
 function escalaSearchText(e){
-  return [e.date,e.time,e.type,e.worship,e.preacher,e.openingPrayer,e.tithePrayer,e.finalPrayer,e.reception,e.media,e.sound,e.minister,e.acousticGuitar,e.keyboard,e.vocals,e.drums,e.guitar2,e.cajonPercussion,e.notes].filter(Boolean).join(' ').toLowerCase();
+  return [e.date,e.time,e.type,e.worship,e.preacher,e.openingPrayer,e.tithePrayer,e.finalPrayer,e.reception,e.media,e.sound,e.minister,e.acousticGuitar,e.electricGuitar,e.bass,e.keyboard,e.vocals,e.drums,e.guitar2,e.cajonPercussion,e.notes].filter(Boolean).join(' ').toLowerCase();
 }
 function escalaRows(e){
   const row=(l,v)=>v?`<p class="muted"><span class="role-di">${l}:</span> ${esc(v)}</p>`:'';
-  if(e.type==='louvor') return `${row('Ministro',e.minister||e.worship)}${row('Violão',e.acousticGuitar)}${row('Teclado',e.keyboard)}${row('Vocais',e.vocals)}${row('Bateria',e.drums||e.guitar2)}${row('Cajon/Percussão',e.cajonPercussion)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  if(e.type==='louvor') return `${row('Ministro',e.minister||e.worship)}${row('Violão',e.acousticGuitar)}${row('Guitarra',e.electricGuitar||e.guitar)}${row('Contrabaixo',e.bass||e.contrabass)}${row('Teclado',e.keyboard)}${row('Vocais',e.vocals)}${row('Bateria',e.drums||e.guitar2)}${row('Cajon/Percussão',e.cajonPercussion)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
   if(e.type==='pregacao') return `${row('Pregador',e.preacher)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
   if(e.type==='lideranca') return `${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Oração final',e.finalPrayer)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
   return `${row('Louvor',e.worship)}${row('Pregador',e.preacher)}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Recepção',e.reception)}${row('Mídia',e.media)}${row('Som',e.sound)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
@@ -867,6 +867,8 @@ function escalaMonthlyRoleFields(tipo){
   if(tipo==='louvor') return [
     ['minister','Ministro'],
     ['acousticGuitar','Violão'],
+    ['electricGuitar','Guitarra'],
+    ['bass','Contrabaixo'],
     ['keyboard','Teclado'],
     ['vocals','Vocais'],
     ['drums','Bateria'],
@@ -1637,7 +1639,7 @@ function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala'
   {k:'date',l:'Data *',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
   {k:'worship',l:'Louvor / Ministro',v:e.worship||e.minister},{k:'preacher',l:'Pregador',v:e.preacher},
   {k:'openingPrayer',l:'Oração inicial',v:e.openingPrayer},{k:'tithePrayer',l:'Oração dos dízimos',v:e.tithePrayer},{k:'finalPrayer',l:'Oração final',v:e.finalPrayer},
-  {k:'acousticGuitar',l:'Violão',v:e.acousticGuitar},{k:'keyboard',l:'Teclado',v:e.keyboard},
+  {k:'acousticGuitar',l:'Violão',v:e.acousticGuitar},{k:'electricGuitar',l:'Guitarra',v:e.electricGuitar||e.guitar},{k:'bass',l:'Contrabaixo',v:e.bass||e.contrabass},{k:'keyboard',l:'Teclado',v:e.keyboard},
   {k:'vocals',l:'Vocais',v:e.vocals},{k:'drums',l:'Bateria',v:e.drums||e.guitar2},{k:'cajonPercussion',l:'Cajon/Percussão',v:e.cajonPercussion},
   {k:'reception',l:'Recepção',v:e.reception},{k:'media',l:'Mídia',v:e.media},
   {k:'sound',l:'Som',v:e.sound},{k:'notes',l:'Observações',v:e.notes,type:'textarea',wide:true}
@@ -1739,7 +1741,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-login-entrar-v25';
+const APP_VERSION = '20260705-louvor-guitarra-baixo-v26';
 
 (function forceOneTimeCacheRefresh(){
   try{

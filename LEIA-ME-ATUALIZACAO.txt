@@ -64,3 +64,9 @@ Atualização v24:
 Atualização v25:
 - O botão do popup de entrada no perfil foi alterado de 'Salvar' para 'Entrar'.
 - Cache/PWA atualizado para carregar a nova versão.
+
+
+Atualização v26:
+- Adicionados os campos Guitarra e Contrabaixo na Escala de Louvor.
+- A criação mensal por domingos também inclui Guitarra e Contrabaixo em cada domingo.
+- Mantidas as alterações anteriores: login, avatar manual para membros, exclusão de perfil e cache/PWA.
