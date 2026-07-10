@@ -383,6 +383,56 @@ document.addEventListener('click',(e)=>{
 document.addEventListener('keydown',(e)=>{if(e.key==='Escape')closeMobileSidebar();});
 window.addEventListener('resize',()=>{if(!isMobileView())closeMobileSidebar();});
 
+
+/* IMAGENS / AVATAR MOBILE */
+function resizeImageFile(file, maxSize=420, quality=0.78){
+  return new Promise((resolve,reject)=>{
+    if(!file){resolve('');return;}
+    if(!file.type || !file.type.startsWith('image/')){reject(new Error('Arquivo inválido'));return;}
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Não foi possível ler a imagem'));
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('Não foi possível carregar a imagem'));
+      img.onload=()=>{
+        try{
+          const scale=Math.min(1, maxSize/Math.max(img.width||1,img.height||1));
+          const w=Math.max(1, Math.round((img.width||maxSize)*scale));
+          const h=Math.max(1, Math.round((img.height||maxSize)*scale));
+          const canvas=document.createElement('canvas');
+          canvas.width=w; canvas.height=h;
+          const ctx=canvas.getContext('2d');
+          ctx.drawImage(img,0,0,w,h);
+          let data=canvas.toDataURL('image/jpeg', quality);
+          // Firestore/localStorage sofrem com fotos grandes. Se ainda ficou grande, reduz mais.
+          if(data.length>180000){
+            const canvas2=document.createElement('canvas');
+            const scale2=Math.min(1, 280/Math.max(w,h));
+            canvas2.width=Math.max(1,Math.round(w*scale2));
+            canvas2.height=Math.max(1,Math.round(h*scale2));
+            canvas2.getContext('2d').drawImage(canvas,0,0,canvas2.width,canvas2.height);
+            data=canvas2.toDataURL('image/jpeg',0.68);
+          }
+          resolve(data);
+        }catch(err){reject(err);}
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function handleAvatarUpload(file, onDone){
+  try{
+    toast('Preparando imagem...');
+    const data=await resizeImageFile(file);
+    onDone(data);
+    toast('Imagem carregada');
+  }catch(err){
+    console.error('Erro ao processar imagem:',err);
+    toast('Não foi possível carregar a imagem');
+  }
+}
+
 /* PROFILES */
 function renderProfiles(){
   const w=$('#profile-list');w.innerHTML='';
@@ -424,15 +474,35 @@ function renderAvatarOptions(){
 function updatePfPreview(){$('#pf-avatar-preview').innerHTML=avatarImg(pfAvatar,'av-img');}
 $('#show-create-btn').onclick=()=>{$('#profile-list-wrap').classList.add('hidden');$('#profile-form').classList.remove('hidden');pfAvatar=getAvatars()[0];$('#profile-form').reset();updatePfPreview();renderAvatarOptions();icons();};
 $('#cancel-create').onclick=()=>{$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');};
-$('#pf-upload').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{pfAvatar=r.result;updatePfPreview();renderAvatarOptions();};r.readAsDataURL(f);};
-$('#profile-form').onsubmit=e=>{
+$('#pf-upload').onchange=e=>{const f=e.target.files[0];if(!f)return;handleAvatarUpload(f,(data)=>{pfAvatar=data;updatePfPreview();renderAvatarOptions();});};
+$('#profile-form').onsubmit=async e=>{
   e.preventDefault();
-  const pass=$('#pf-password').value;
-  const pass2=$('#pf-password-confirm').value;
-  if(pass.length<4){toast('A senha precisa ter pelo menos 4 caracteres');return;}
-  if(pass!==pass2){toast('As senhas não conferem');return;}
-  const p=stampRecord({id:uid(),name:$('#pf-name').value.trim(),ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)});
-  profiles.push(p);LS.set('profiles',profiles);activeProfile=p.id;LS.set('active_profile',p.id);$('#profile-form').classList.add('hidden');$('#profile-list-wrap').classList.remove('hidden');openApp();saveCloudData();
+  const form=e.currentTarget;
+  const submitBtn=form.querySelector('button[type=\"submit\"]');
+  try{
+    if(submitBtn){submitBtn.disabled=true;submitBtn.style.opacity='0.65';}
+    const pass=$('#pf-password').value;
+    const pass2=$('#pf-password-confirm').value;
+    if(pass.length<4){toast('A senha precisa ter pelo menos 4 caracteres');return;}
+    if(pass!==pass2){toast('As senhas não conferem');return;}
+    const name=$('#pf-name').value.trim();
+    if(!name){toast('Informe o nome');return;}
+    const p=stampRecord({id:uid(),name,ministry:$('#pf-min').value.trim(),role:$('#pf-role').value.trim(),birthDate:$('#pf-birth').value,avatar:pfAvatar || getAvatars()[0],passwordHash:hashPassword(pass)});
+    profiles.push(p);
+    LS.set('profiles',profiles);
+    activeProfile=p.id;
+    LS.set('active_profile',p.id);
+    $('#profile-form').classList.add('hidden');
+    $('#profile-list-wrap').classList.remove('hidden');
+    openApp();
+    saveCloudData();
+    toast('Perfil criado');
+  }catch(err){
+    console.error('Erro ao criar perfil:',err);
+    toast('Erro ao criar perfil. Tente uma imagem menor.');
+  }finally{
+    if(submitBtn){submitBtn.disabled=false;submitBtn.style.opacity='';}
+  }
 };
 $('#switch-profile').onclick=()=>{activeProfile=null;localStorage.setItem('igreja_active_profile', JSON.stringify(null));$('#app').classList.add('hidden');$('#profile-screen').classList.remove('hidden');renderProfiles();icons();};
 $('#edit-profile').onclick=()=>openEditProfileModal();
@@ -1682,7 +1752,7 @@ function openEditProfileModal(){
     ${adm?'':'<div><label class="text-sm muted block mb-1" for="edit-new-password">Nova senha</label><input id="edit-new-password" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div><div><label class="text-sm muted block mb-1" for="edit-new-password-confirm">Confirmar nova senha</label><input id="edit-new-password-confirm" type="password" minlength="4" class="w-full rounded-xl px-3 py-2"></div>'}`;
   $('#modal').classList.remove('hidden');$('#modal').classList.add('flex');
   const up=$('#edit-avatar-upload');
-  up.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{editAvatar=r.result;$('#edit-avatar-preview').innerHTML=avatarImg(editAvatar,'av-img');};r.readAsDataURL(f);};
+  up.onchange=e=>{const f=e.target.files[0];if(!f)return;handleAvatarUpload(f,(data)=>{editAvatar=data;$('#edit-avatar-preview').innerHTML=avatarImg(editAvatar,'av-img');});};
   $('#modal-save').onclick=()=>{
     const adm=isAdminProfile(p);
     const name=adm?ADMIN_USERNAME:$('#edit-name').value.trim();
@@ -1741,7 +1811,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-louvor-guitarra-baixo-v26';
+const APP_VERSION = '20260705-mobile-avatar-profile-v27';
 
 (function forceOneTimeCacheRefresh(){
   try{

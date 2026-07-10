@@ -70,3 +70,10 @@ Atualização v26:
 - Adicionados os campos Guitarra e Contrabaixo na Escala de Louvor.
 - A criação mensal por domingos também inclui Guitarra e Contrabaixo em cada domingo.
 - Mantidas as alterações anteriores: login, avatar manual para membros, exclusão de perfil e cache/PWA.
+
+
+Atualização v27:
+- Corrigido cadastro de perfil no celular/PWA instalado.
+- Fotos enviadas no perfil agora são redimensionadas/comprimidas antes de salvar.
+- Corrigida troca de foto do perfil no app do celular.
+- Mantidas alterações da v26: Guitarra e Contrabaixo na escala de Louvor.
