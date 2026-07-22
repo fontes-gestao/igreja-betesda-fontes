@@ -702,3 +702,17 @@ html.light .collapse-toggle:hover {
 .plan-detail-page-head .card2 {
   color: var(--text);
 }
+
+
+/* Destaque automático para Culto de Santa Ceia */
+.santa-ceia-badge,
+.santa-ceia-card {
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(124, 58, 237, 0.08)) !important;
+}
+.santa-ceia-badge p { color: var(--text); }
+.santa-ceia-badge .text-xs { color: var(--text-secondary); }
+.santa-ceia-home {
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(124, 58, 237, 0.08)) !important;
+}

@@ -85,3 +85,11 @@ Atualização v28:
 - As escalas são exibidas em ordem crescente por domingo.
 - Ao recriar uma escala mensal do mesmo tipo/mês, o sistema substitui os domingos existentes desse tipo, evitando duplicação.
 - Exclusão de escala agora registra o item apagado para o Firestore/cache não trazer de volta.
+
+
+Atualização v29 - Culto de Santa Ceia:
+- Em escalas de Pregação e Liderança, cada domingo mensal pode ser marcado como Culto de Santa Ceia.
+- Quando marcado, a escala aparece com destaque visual.
+- O Mural de Avisos passa a exibir automaticamente aviso de Culto de Santa Ceia na data marcada.
+- O sino de notificações também mostra lembrete de Culto de Santa Ceia.
+- Alteração preserva dados existentes no Firebase/Firestore.

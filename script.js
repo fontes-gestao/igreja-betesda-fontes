@@ -913,6 +913,36 @@ $('#add-member').onclick=()=>openMemberModal();
 function escalaTipoLabel(t){
   return ({louvor:'Louvor',pregacao:'Pregação',lideranca:'Liderança',geral:'Geral'}[t||'geral'] || 'Geral');
 }
+function isSantaCeia(e){
+  return !!(e && (e.santaCeia===true || e.holyCommunion===true || e.santaCeia==='Sim' || e.holyCommunion==='Sim'));
+}
+function santaCeiaBadgeHtml(){
+  return `<div class="santa-ceia-badge rounded-xl p-3 mb-2 flex items-center gap-2"><span class="text-lg">🍞🍷</span><div><p class="font-bold">Culto de Santa Ceia</p><p class="text-xs">Data marcada em destaque para a igreja.</p></div></div>`;
+}
+function getSantaCeiaAvisos(){
+  const map=new Map();
+  (Array.isArray(escalas)?escalas:[]).forEach(e=>{
+    if(!isSantaCeia(e) || !e.date) return;
+    const cur=map.get(e.date);
+    const tipo=escalaTipoLabel(e.type);
+    const item={
+      id:'santa-ceia-'+e.date,
+      autoSantaCeia:true,
+      title:'Culto de Santa Ceia',
+      category:'Santa Ceia',
+      date:e.date,
+      priority:'Importante',
+      message:`Atenção: no dia ${fmtDate(e.date)} haverá Culto de Santa Ceia. Verifique a escala de ${tipo} para não esquecer.`,
+      author:'Sistema Betesda'
+    };
+    if(cur){
+      cur.message = cur.message.replace(' para não esquecer.', ` e ${tipo} para não esquecer.`);
+    } else {
+      map.set(e.date,item);
+    }
+  });
+  return Array.from(map.values()).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+}
 function ensureEscalaTools(){
   const list=$('#escala-list');
   if(!list || $('#escala-tools')) return;
@@ -934,14 +964,15 @@ function ensureEscalaTools(){
   icons();
 }
 function escalaSearchText(e){
-  return [e.date,e.time,e.type,e.worship,e.preacher,e.openingPrayer,e.tithePrayer,e.finalPrayer,e.reception,e.media,e.sound,e.minister,e.acousticGuitar,e.electricGuitar,e.bass,e.keyboard,e.vocals,e.drums,e.guitar2,e.cajonPercussion,e.notes].filter(Boolean).join(' ').toLowerCase();
+  return [e.date,e.time,e.type,e.worship,e.preacher,e.openingPrayer,e.tithePrayer,e.finalPrayer,e.reception,e.media,e.sound,e.minister,e.acousticGuitar,e.electricGuitar,e.bass,e.keyboard,e.vocals,e.drums,e.guitar2,e.cajonPercussion,e.notes,isSantaCeia(e)?'culto santa ceia santa ceia':''].filter(Boolean).join(' ').toLowerCase();
 }
 function escalaRows(e){
   const row=(l,v)=>v?`<p class="muted"><span class="role-di">${l}:</span> ${esc(v)}</p>`:'';
-  if(e.type==='louvor') return `${row('Ministro',e.minister||e.worship)}${row('Violão',e.acousticGuitar)}${row('Guitarra',e.electricGuitar||e.guitar)}${row('Contrabaixo',e.bass||e.contrabass)}${row('Teclado',e.keyboard)}${row('Vocais',e.vocals)}${row('Bateria',e.drums||e.guitar2)}${row('Cajon/Percussão',e.cajonPercussion)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
-  if(e.type==='pregacao') return `${row('Pregador',e.preacher)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
-  if(e.type==='lideranca') return `${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Oração final',e.finalPrayer)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
-  return `${row('Louvor',e.worship)}${row('Pregador',e.preacher)}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Recepção',e.reception)}${row('Mídia',e.media)}${row('Som',e.sound)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  const ceia=isSantaCeia(e)?santaCeiaBadgeHtml():'';
+  if(e.type==='louvor') return `${ceia}${row('Ministro',e.minister||e.worship)}${row('Violão',e.acousticGuitar)}${row('Guitarra',e.electricGuitar||e.guitar)}${row('Contrabaixo',e.bass||e.contrabass)}${row('Teclado',e.keyboard)}${row('Vocais',e.vocals)}${row('Bateria',e.drums||e.guitar2)}${row('Cajon/Percussão',e.cajonPercussion)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  if(e.type==='pregacao') return `${ceia}${row('Pregador',e.preacher)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  if(e.type==='lideranca') return `${ceia}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Oração final',e.finalPrayer)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
+  return `${ceia}${row('Louvor',e.worship)}${row('Pregador',e.preacher)}${row('Oração inicial',e.openingPrayer)}${row('Oração dízimos',e.tithePrayer)}${row('Recepção',e.reception)}${row('Mídia',e.media)}${row('Som',e.sound)}${e.notes?`<p class="text-xs mt-1 muted">${esc(e.notes)}</p>`:''}`;
 }
 function renderEscalas(){
   ensureEscalaTools();
@@ -1051,6 +1082,7 @@ function openEscalaMensalModal(tipo){
               <label class="text-sm muted block mb-1" for="monthly-${idx}-${key}">${roleLabel}</label>
               <input id="monthly-${idx}-${key}" data-role-key="${key}" class="w-full rounded-xl px-3 py-2" placeholder="Nome">
             </div>`).join('')}
+          ${['pregacao','lideranca'].includes(tipo)?`<label class="sm:col-span-2 card2 rounded-xl p-3 flex items-center gap-3 cursor-pointer"><input type="checkbox" data-role-key="santaCeia" class="w-5 h-5"><span><strong>Culto de Santa Ceia</strong><br><small class="muted">Marque para destacar este domingo e aparecer nos avisos.</small></span></label>`:''}
           <div class="sm:col-span-2">
             <label class="text-sm muted block mb-1" for="monthly-${idx}-notes">Observações</label>
             <textarea id="monthly-${idx}-notes" data-role-key="notes" rows="2" class="w-full rounded-xl px-3 py-2" placeholder="Opcional"></textarea>
@@ -1071,6 +1103,7 @@ function openEscalaMensalModal(tipo){
       const item=stampRecord({id:uid(),type:tipo,date:block.dataset.date,time});
       fields.forEach(([key])=>{item[key]=(block.querySelector(`[data-role-key="${key}"]`)?.value||'').trim();});
       item.notes=(block.querySelector('[data-role-key="notes"]')?.value||'').trim();
+      if(['pregacao','lideranca'].includes(tipo)) item.santaCeia=!!block.querySelector('[data-role-key="santaCeia"]')?.checked;
       if(tipo==='louvor') item.worship=item.minister || '';
       return item;
     });
@@ -1512,8 +1545,8 @@ function renderHomeSpiritualPanels(){
   }
   const avBox=$('#home-avisos-box');
   if(avBox){
-    const latest=sortedByDateDesc(avisos).slice(0,3);
-    avBox.innerHTML=latest.length?latest.map(a=>`<div class="card2 rounded-xl p-3"><p class="font-semibold text-[var(--text)] truncate">${esc(a.title||'Aviso')}</p><p class="text-xs muted">${fmtDate(a.date)} · ${esc(a.category||'Geral')}</p></div>`).join(''):'Nenhum aviso publicado.';
+    const latest=[...getSantaCeiaAvisos(),...sortedByDateDesc(avisos)].slice(0,3);
+    avBox.innerHTML=latest.length?latest.map(a=>`<div class="card2 rounded-xl p-3 ${a.autoSantaCeia?'santa-ceia-home':''}"><p class="font-semibold text-[var(--text)] truncate">${esc(a.title||'Aviso')}</p><p class="text-xs muted">${fmtDate(a.date)} · ${esc(a.category||'Geral')}</p></div>`).join(''):'Nenhum aviso publicado.';
   }
   const orBox=$('#home-oracao-box');
   if(orBox){
@@ -1552,15 +1585,18 @@ function openDevocionalModal(d){d=d||{};openModal(d.id?'Editar devocional':'Novo
 
 /* MURAL DE AVISOS */
 function renderAvisos(){
-  const list=sortedByDateDesc(avisos);
+  const list=[...getSantaCeiaAvisos(),...sortedByDateDesc(avisos)];
   const c=$('#avisos-list'); if(!c) return;
   c.innerHTML=''; $('#avisos-empty')?.classList.toggle('hidden',list.length>0);
   list.forEach(av=>{
-    const d=document.createElement('div');d.className='card rounded-2xl p-4';
+    const d=document.createElement('div');d.className='card rounded-2xl p-4 '+(av.autoSantaCeia?'santa-ceia-card':'');
     const pr=av.priority||'Normal';
-    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="megaphone" style="color:var(--accent)"></i>${esc(av.title||'Aviso')}</p><p class="muted text-sm">${fmtDate(av.date)} · ${esc(av.category||'Geral')}</p></div><div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div><p class="mt-2">${statusChip(pr)}</p><p class="muted text-sm mt-3 whitespace-pre-line">${esc(av.message||'')}</p>${av.author?`<p class="muted text-xs mt-3">Publicado por: ${esc(av.author)}</p>`:''}`;
-    d.querySelector('.ed').onclick=()=>openAvisoModal(av);
-    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{avisos=avisos.filter(x=>x.id!==av.id);LS.set('avisos',avisos);renderAvisos();renderHomeSpiritualPanels();toast('Aviso excluído');});
+    const actions=av.autoSantaCeia?'':`<div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div>`;
+    d.innerHTML=`<div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="font-semibold truncate flex items-center gap-2"><i data-lucide="${av.autoSantaCeia?'badge-check':'megaphone'}" style="color:var(--accent)"></i>${esc(av.title||'Aviso')}</p><p class="muted text-sm">${fmtDate(av.date)} · ${esc(av.category||'Geral')}</p></div>${actions}</div><p class="mt-2">${statusChip(pr)}</p><p class="muted text-sm mt-3 whitespace-pre-line">${esc(av.message||'')}</p>${av.author?`<p class="muted text-xs mt-3">Publicado por: ${esc(av.author)}</p>`:''}`;
+    if(!av.autoSantaCeia){
+      d.querySelector('.ed').onclick=()=>openAvisoModal(av);
+      d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{avisos=avisos.filter(x=>x.id!==av.id);LS.set('avisos',avisos);renderAvisos();renderHomeSpiritualPanels();toast('Aviso excluído');});
+    }
     c.appendChild(d);
   });
   icons();
@@ -1605,6 +1641,7 @@ function getNotifications(){
   const notes=[];
   const devotionalToday=getDevocionalAtual();
   if(devotionalToday) notes.push({icon:'book-open',title:'Devocional de hoje',text:`${devotionalToday.title||'Devocional'} · ${devotionalToday.reference||fmtDate(devotionalToday.date)}`});
+  getSantaCeiaAvisos().filter(a=>!a.date || parse(a.date)>=new Date(NOW.toDateString())).slice(0,3).forEach(a=>notes.push({icon:'badge-check',title:a.title,text:`${fmtDate(a.date)} · Santa Ceia`}));
   getMonthlyBirthdays().slice(0,5).forEach(p=>notes.push({icon:'cake',title:`Aniversário: ${p.name}`,text:`${fmtBirthDate(p.birthDate)} · ${p.kind}${p.role?' · '+p.role:''}`}));
   sortedByDateDesc(avisos).slice(0,3).forEach(a=>notes.push({icon:'megaphone',title:a.title||'Aviso',text:`${fmtDate(a.date)} · ${a.category||'Geral'}`}));
   const prayers=oracoes.filter(o=>(o.status||'Em oração')!=='Respondido');
@@ -1767,6 +1804,7 @@ function openMemberModal(m){m=m||{};openModal(m.id?'Editar Membro':'Novo Membro'
 
 function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala',[
   {k:'type',l:'Tipo de escala',v:e.type||'geral',type:'select',opts:['geral','louvor','pregacao','lideranca']},
+  {k:'santaCeia',l:'Culto de Santa Ceia',v:isSantaCeia(e)?'Sim':'Não',type:'select',opts:['Não','Sim']},
   {k:'date',l:'Data *',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
   {k:'worship',l:'Louvor / Ministro',v:e.worship||e.minister},{k:'preacher',l:'Pregador',v:e.preacher},
   {k:'openingPrayer',l:'Oração inicial',v:e.openingPrayer},{k:'tithePrayer',l:'Oração dos dízimos',v:e.tithePrayer},{k:'finalPrayer',l:'Oração final',v:e.finalPrayer},
@@ -1774,7 +1812,7 @@ function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala'
   {k:'vocals',l:'Vocais',v:e.vocals},{k:'drums',l:'Bateria',v:e.drums||e.guitar2},{k:'cajonPercussion',l:'Cajon/Percussão',v:e.cajonPercussion},
   {k:'reception',l:'Recepção',v:e.reception},{k:'media',l:'Mídia',v:e.media},
   {k:'sound',l:'Som',v:e.sound},{k:'notes',l:'Observações',v:e.notes,type:'textarea',wide:true}
-],v=>{v.minister=v.worship;if(e.id)Object.assign(e,stampRecord(v));else escalas.push(stampRecord({id:uid(),...v}));escalas=normalizeEscalas();LS.set('escalas',escalas);escalaFilter=v.type||'louvor';$('#escala-tools')?.remove();renderEscalas();toast('Escala salva');});}
+],v=>{v.minister=v.worship;v.santaCeia=(v.santaCeia==='Sim' && ['pregacao','lideranca'].includes(v.type));if(e.id)Object.assign(e,stampRecord(v));else escalas.push(stampRecord({id:uid(),...v}));escalas=normalizeEscalas();LS.set('escalas',escalas);escalaFilter=v.type||'louvor';$('#escala-tools')?.remove();renderEscalas();renderHomeSpiritualPanels();toast('Escala salva');});}
 
 function openEventoModal(e){e=e||{};openModal(e.id?'Editar Evento':'Novo Evento',[
   {k:'name',l:'Nome *',v:e.name,wide:true},{k:'date',l:'Data',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
@@ -1872,7 +1910,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-escalas-grupos-v28';
+const APP_VERSION = '20260705-santa-ceia-v29';
 
 (function forceOneTimeCacheRefresh(){
   try{
