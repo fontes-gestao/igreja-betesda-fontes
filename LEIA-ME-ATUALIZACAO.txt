@@ -77,3 +77,11 @@ Atualização v27:
 - Fotos enviadas no perfil agora são redimensionadas/comprimidas antes de salvar.
 - Corrigida troca de foto do perfil no app do celular.
 - Mantidas alterações da v26: Guitarra e Contrabaixo na escala de Louvor.
+
+
+Atualização v28:
+- Escalas agora ficam separadas por abas: Louvor, Pregação e Liderança.
+- Removida a visão misturada por padrão para evitar confusão.
+- As escalas são exibidas em ordem crescente por domingo.
+- Ao recriar uma escala mensal do mesmo tipo/mês, o sistema substitui os domingos existentes desse tipo, evitando duplicação.
+- Exclusão de escala agora registra o item apagado para o Firestore/cache não trazer de volta.

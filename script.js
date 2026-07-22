@@ -90,8 +90,16 @@ function mergeCloudPayload(remote={}, local={}){
     merged[k]=mergeArrayById(remote[k], local[k]);
   });
   merged.settings={...(remote.settings||{}),...(local.settings||{})};
-  // Perfis excluídos ficam registrados em settings.deletedProfileIds.
-  // Isso evita que outro navegador com cache antigo traga o perfil de volta na próxima sincronização.
+  // Registros excluídos ficam marcados em settings.deletedIdsByKey.
+  // Isso impede que outro navegador com cache antigo traga itens apagados de volta.
+  const deletedByKey = merged.settings.deletedIdsByKey && typeof merged.settings.deletedIdsByKey==='object' ? merged.settings.deletedIdsByKey : {};
+  RECORD_ARRAY_KEYS.forEach(k=>{
+    const deletedSet = new Set(Array.isArray(deletedByKey[k]) ? deletedByKey[k].map(String) : []);
+    if(deletedSet.size && Array.isArray(merged[k])){
+      merged[k] = merged[k].filter(item => item && !deletedSet.has(String(item.id || item.email || item.name || '')));
+    }
+  });
+  // Compatibilidade com versões anteriores que usavam settings.deletedProfileIds.
   const deletedProfiles = new Set(Array.isArray(merged.settings.deletedProfileIds) ? merged.settings.deletedProfileIds.map(String) : []);
   if(deletedProfiles.size && Array.isArray(merged.profiles)){
     merged.profiles = merged.profiles.filter(p => p && (String(p.id) === ADMIN_PROFILE_ID || !deletedProfiles.has(String(p.id))));
@@ -102,6 +110,49 @@ function mergeCloudPayload(remote={}, local={}){
 }
 function stampRecord(obj){
   return {...obj,_updatedAt:Date.now()};
+}
+function rememberDeletedRecord(key,id){
+  if(!key || !id) return;
+  const all=settings.deletedIdsByKey && typeof settings.deletedIdsByKey==='object' ? {...settings.deletedIdsByKey} : {};
+  const current=Array.isArray(all[key]) ? all[key].map(String) : [];
+  const sid=String(id);
+  all[key]=current.includes(sid) ? current : [...current,sid];
+  settings={...settings,deletedIdsByKey:all};
+  localStorage.setItem('igreja_settings',JSON.stringify(settings));
+}
+function deleteLocalRecord(key,id){
+  if(!id) return false;
+  rememberDeletedRecord(key,id);
+  if(key==='escalas') escalas=escalas.filter(x=>String(x.id)!==String(id));
+  if(key==='members') members=members.filter(x=>String(x.id)!==String(id));
+  if(key==='eventos') eventos=eventos.filter(x=>String(x.id)!==String(id));
+  if(key==='manut') manut=manut.filter(x=>String(x.id)!==String(id));
+  if(key==='financeiro') financeiro=financeiro.filter(x=>String(x.id)!==String(id));
+  if(key==='doacoes') doacoes=doacoes.filter(x=>String(x.id)!==String(id));
+  if(key==='devocionais') devocionais=devocionais.filter(x=>String(x.id)!==String(id));
+  if(key==='avisos') avisos=avisos.filter(x=>String(x.id)!==String(id));
+  if(key==='oracoes') oracoes=oracoes.filter(x=>String(x.id)!==String(id));
+  markLocalDataChanged();
+  const refs={escalas,members,eventos,manut,financeiro,doacoes,devocionais,avisos,oracoes};
+  LS.set(key, refs[key]);
+  saveCloudData();
+  return true;
+}
+function normalizeEscalas(){
+  const map=new Map();
+  const passthrough=[];
+  (Array.isArray(escalas)?escalas:[]).forEach(e=>{
+    if(!e || typeof e!=='object') return;
+    const type=e.type||'geral';
+    if(['louvor','pregacao','lideranca'].includes(type) && e.date){
+      const key=type+'|'+e.date;
+      const cur=map.get(key);
+      if(!cur || recordUpdatedAt(e)>=recordUpdatedAt(cur)) map.set(key,e);
+    }else{
+      passthrough.push(e);
+    }
+  });
+  return [...Array.from(map.values()),...passthrough];
 }
 function isFreshLocalChange(){
   const t=currentLocalUpdatedAt();
@@ -260,7 +311,7 @@ let profiles=LS.get('profiles',[]),activeProfile=LS.get('active_profile',null);
 let members=LS.get('members',[]),escalas=LS.get('escalas',[]),eventos=LS.get('eventos',[]),manut=LS.get('manut',[]),financeiro=LS.get('financeiro',[]),doacoes=LS.get('doacoes',[]),devocionais=LS.get('devocionais',[]),avisos=LS.get('avisos',[]),oracoes=LS.get('oracoes',[]);
 let settings=LS.get('settings',{churchName:'Igreja Betesda Fontes',theme:'dark'});
 let sidebarCollapsed=LS.get('sidebar_collapsed',false);
-let escalaFilter='todas';
+let escalaFilter='louvor';
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),2200);}
 function icons(){lucide.createIcons();}
@@ -875,7 +926,7 @@ function ensureEscalaTools(){
     <button class="escala-month-btn card2 rounded-xl p-3 text-left hover:opacity-90" data-month="lideranca"><div class="font-semibold flex items-center gap-2"><i data-lucide="hand"></i>Escala: Liderança</div><p class="muted text-xs mt-1">Oração inicial, dízimos e final</p></button>
   </div>
   <div class="flex flex-wrap gap-2 text-sm">
-    ${['todas','louvor','pregacao','lideranca','geral'].map(t=>`<button class="escala-filter px-3 py-2 rounded-xl ${escalaFilter===t?'accent-grad text-white':'card2'}" data-filter="${t}">${t==='todas'?'Todas':escalaTipoLabel(t)}</button>`).join('')}
+    ${['louvor','pregacao','lideranca'].map(t=>`<button class="escala-filter px-3 py-2 rounded-xl ${escalaFilter===t?'accent-grad text-white':'card2'}" data-filter="${t}">${escalaTipoLabel(t)}</button>`).join('')}
   </div>`;
   list.parentNode.insertBefore(wrap,list);
   wrap.querySelectorAll('[data-month]').forEach(b=>b.onclick=()=>openEscalaMensalModal(b.dataset.month));
@@ -894,13 +945,17 @@ function escalaRows(e){
 }
 function renderEscalas(){
   ensureEscalaTools();
+  escalas=normalizeEscalas();
+  localStorage.setItem('igreja_escalas',JSON.stringify(escalas));
   const q=$('#escala-search').value.toLowerCase();
   const list=escalas.filter(e=>{
     const type=e.type||'geral';
-    const okFilter=escalaFilter==='todas'||type===escalaFilter;
+    const okFilter=type===escalaFilter;
     return okFilter && escalaSearchText(e).includes(q);
-  }).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const c=$('#escala-list');c.innerHTML='';$('#escala-empty').classList.toggle('hidden',list.length>0);
+  }).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const c=$('#escala-list');c.innerHTML='';
+  $('#escala-empty').textContent=`Nenhuma escala de ${escalaTipoLabel(escalaFilter)} cadastrada`;
+  $('#escala-empty').classList.toggle('hidden',list.length>0);
   list.forEach(e=>{
     const d=document.createElement('div');d.className='card rounded-2xl p-4';
     const type=e.type||'geral';
@@ -910,7 +965,7 @@ function renderEscalas(){
       <div class="text-sm space-y-1">${escalaRows(e)}</div>`;
     d.querySelector('.ed').onclick=()=>openEscalaModal(e);
     d.querySelector('.dup').onclick=()=>{escalas.push(stampRecord({...e,id:uid()}));LS.set('escalas',escalas);renderEscalas();toast('Escala duplicada');};
-    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{escalas=escalas.filter(x=>x.id!==e.id);markLocalDataChanged();LS.set('escalas',escalas);renderEscalas();toast('Escala excluída');});
+    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{deleteLocalRecord('escalas',e.id);renderEscalas();toast('Escala excluída');});
     c.appendChild(d);
   });
   icons();
@@ -1019,7 +1074,13 @@ function openEscalaMensalModal(tipo){
       if(tipo==='louvor') item.worship=item.minister || '';
       return item;
     });
+    const newDates=new Set(created.map(x=>x.date));
+    escalas.forEach(old=>{
+      if(old && old.type===tipo && newDates.has(old.date)) rememberDeletedRecord('escalas',old.id);
+    });
+    escalas=escalas.filter(old=>!(old && old.type===tipo && newDates.has(old.date)));
     escalas.push(...created);
+    escalas=normalizeEscalas();
     LS.set('escalas',escalas);
     escalaFilter=tipo;
     $('#escala-tools')?.remove();
@@ -1713,7 +1774,7 @@ function openEscalaModal(e){e=e||{};openModal(e.id?'Editar Escala':'Nova Escala'
   {k:'vocals',l:'Vocais',v:e.vocals},{k:'drums',l:'Bateria',v:e.drums||e.guitar2},{k:'cajonPercussion',l:'Cajon/Percussão',v:e.cajonPercussion},
   {k:'reception',l:'Recepção',v:e.reception},{k:'media',l:'Mídia',v:e.media},
   {k:'sound',l:'Som',v:e.sound},{k:'notes',l:'Observações',v:e.notes,type:'textarea',wide:true}
-],v=>{v.minister=v.worship;if(e.id)Object.assign(e,stampRecord(v));else escalas.push(stampRecord({id:uid(),...v}));LS.set('escalas',escalas);renderEscalas();toast('Escala salva');});}
+],v=>{v.minister=v.worship;if(e.id)Object.assign(e,stampRecord(v));else escalas.push(stampRecord({id:uid(),...v}));escalas=normalizeEscalas();LS.set('escalas',escalas);escalaFilter=v.type||'louvor';$('#escala-tools')?.remove();renderEscalas();toast('Escala salva');});}
 
 function openEventoModal(e){e=e||{};openModal(e.id?'Editar Evento':'Novo Evento',[
   {k:'name',l:'Nome *',v:e.name,wide:true},{k:'date',l:'Data',v:e.date,type:'date'},{k:'time',l:'Horário',v:e.time,type:'time'},
@@ -1811,7 +1872,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-mobile-avatar-profile-v27';
+const APP_VERSION = '20260705-escalas-grupos-v28';
 
 (function forceOneTimeCacheRefresh(){
   try{
