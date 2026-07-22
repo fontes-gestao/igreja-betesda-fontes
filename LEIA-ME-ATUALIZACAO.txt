@@ -93,3 +93,9 @@ Atualização v29 - Culto de Santa Ceia:
 - O Mural de Avisos passa a exibir automaticamente aviso de Culto de Santa Ceia na data marcada.
 - O sino de notificações também mostra lembrete de Culto de Santa Ceia.
 - Alteração preserva dados existentes no Firebase/Firestore.
+
+
+Atualização v30:
+- Eventos com data passada não aparecem mais na tela Eventos.
+- Exclusão de eventos registra o ID removido para não voltar pela sincronização.
+- Mantidas as alterações de Santa Ceia e escalas por grupos.

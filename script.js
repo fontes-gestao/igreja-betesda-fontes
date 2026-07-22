@@ -1125,8 +1125,14 @@ function openEscalaMensalModal(tipo){
 }
 
 /* EVENTOS */
+function isEventoAtivo(e){
+  const d=parse(e?.date);
+  if(!d) return true;
+  const today=new Date(NOW.toDateString());
+  return d>=today;
+}
 function renderEventos(){
-  const list=[...eventos].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const list=[...eventos].filter(isEventoAtivo).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const c=$('#evento-list');c.innerHTML='';$('#evento-empty').classList.toggle('hidden',list.length>0);
   list.forEach(e=>{
     const d=document.createElement('div');d.className='card rounded-2xl p-4';
@@ -1135,7 +1141,7 @@ function renderEventos(){
       <div class="flex gap-1 shrink-0"><button class="ed muted hover:text-[var(--accent)]" aria-label="Editar"><i data-lucide="pencil"></i></button><button class="dl muted hover:text-red-400" aria-label="Excluir"><i data-lucide="trash-2"></i></button></div></div>
       <div class="mt-2 text-sm muted space-y-1"><p><i data-lucide="calendar" style="width:14px;height:14px;display:inline"></i> ${fmtDate(e.date)} ${esc(e.time||'')}</p>${e.location?`<p><i data-lucide="map-pin" style="width:14px;height:14px;display:inline"></i> ${esc(e.location)}</p>`:''}${e.responsible?`<p><i data-lucide="user" style="width:14px;height:14px;display:inline"></i> ${esc(e.responsible)}</p>`:''}${e.description?`<p class="text-xs mt-1">${esc(e.description)}</p>`:''}</div>`;
     d.querySelector('.ed').onclick=()=>openEventoModal(e);
-    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{eventos=eventos.filter(x=>x.id!==e.id);LS.set('eventos',eventos);renderEventos();toast('Evento excluído');});
+    d.querySelector('.dl').onclick=ev=>confirmDelete(ev.currentTarget,()=>{deleteLocalRecord('eventos',e.id);renderEventos();renderHome();toast('Evento excluído');});
     c.appendChild(d);
   });
   icons();
@@ -1910,7 +1916,7 @@ boot();
    ============================================================ */
 
 /* ---------- Registro do Service Worker com atualização automática ---------- */
-const APP_VERSION = '20260705-santa-ceia-v29';
+const APP_VERSION = '20260706-eventos-expirados-v30';
 
 (function forceOneTimeCacheRefresh(){
   try{

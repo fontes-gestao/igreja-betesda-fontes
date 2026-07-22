@@ -1,12 +1,12 @@
 /* ============================================================
    Service Worker - Betesda Fontes (PWA)
-   Versão 20260705-santa-ceia-v29
+   Versão 20260706-eventos-expirados-v30
    - Corrige cache preso em iPhone/Android/Chrome.
    - HTML, JS, CSS e manifest sempre tentam buscar a versão nova primeiro.
    - Imagens e ícones continuam em cache para o PWA funcionar melhor offline.
    ============================================================ */
 
-const CACHE_VERSION = '20260705-santa-ceia-v29';
+const CACHE_VERSION = '20260706-eventos-expirados-v30';
 const CACHE_NAME = `betesda-fontes-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
